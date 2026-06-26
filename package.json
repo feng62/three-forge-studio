@@ -1,0 +1,22 @@
+{
+  "name": "three-forge-studio",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "pnpm --filter demo run dev",
+    "docs:dev": "pnpm --filter @forge/docs run docs:dev",
+    "docs:build": "pnpm --filter @forge/docs run docs:build",
+    "build:core": "pnpm --filter @forge/core run build",
+    "build:editor": "pnpm --filter @forge/editor run build",
+    "build:all": "pnpm run build:core && pnpm run build:editor"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/three": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "three": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vue": "catalog:"
+  }
+}

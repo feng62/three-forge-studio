@@ -1,0 +1,10 @@
+{
+  "name": "@forge/plugin-physics",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    "./editor": "./src/editor.ts",
+    "./core": "./src/core.ts"
+  },
+  "scripts": {}
+}
