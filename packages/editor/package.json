@@ -16,8 +16,20 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
     "@forge/core": "workspace:*",
+    "@forge/plugins": "workspace:*",
+    "@forge/utils": "workspace:*",
+    "@types/three": "catalog:",
+    "@vueuse/core": "^14.3.0",
+    "dexie": "^4.4.4",
     "element-plus": "catalog:",
+    "gsap": "^3.15.0",
+    "hotkeys-js": "^4.0.4",
+    "pinia": "^3.0.4",
+    "three": "catalog:",
+    "three-stdlib": "^2.36.1",
+    "three-viewport-gizmo": "^2.2.0",
     "vue": "catalog:"
   },
   "devDependencies": {

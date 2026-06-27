@@ -23,6 +23,7 @@ export default defineConfig({
               items: [
                 { text: '设计理念', link: '/design/concept' },
                 { text: '系统架构', link: '/design/architecture' },
+                { text: 'JSON 协议', link: '/design/json' },
                 { text: '插件系统', link: '/design/plugin' }
               ]
             }
@@ -65,6 +66,7 @@ export default defineConfig({
               items: [
                 { text: 'Design Philosophy', link: '/en/design/concept' },
                 { text: 'Architecture', link: '/en/design/architecture' },
+                { text: 'JSON Protocol', link: '/en/design/json' },
                 { text: 'Plugin System', link: '/en/design/plugin' }
               ]
             }
@@ -91,6 +93,7 @@ export default defineConfig({
   },
 
   themeConfig: {
+    outline: 'deep',
     socialLinks: [
       { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
     ]

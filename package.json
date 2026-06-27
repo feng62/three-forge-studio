@@ -11,12 +11,18 @@
     "build:all": "pnpm run build:core && pnpm run build:editor"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.1",
     "@types/node": "catalog:",
     "@types/three": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
+    "tailwindcss": "^4.3.1",
     "three": "catalog:",
     "typescript": "catalog:",
+    "ui-ux-pro-max-cli": "^2.9.0",
     "vite": "catalog:",
     "vue": "catalog:"
+  },
+  "dependencies": {
+    "@phosphor-icons/vue": "^2.2.1"
   }
 }

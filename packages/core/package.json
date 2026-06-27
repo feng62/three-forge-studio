@@ -15,9 +15,11 @@
     "build": "vite build"
   },
   "dependencies": {
-    "three": "catalog:"
+    "three": "catalog:",
+    "three-stdlib": "^2.36.1"
   },
   "devDependencies": {
+    "@types/three": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plugin-dts": "catalog:"

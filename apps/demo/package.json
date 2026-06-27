@@ -10,6 +10,8 @@
   "dependencies": {
     "@forge/core": "workspace:*",
     "@forge/editor": "workspace:*",
+    "element-plus": "catalog:",
+    "pinia": "^3.0.4",
     "vue": "catalog:"
   },
   "devDependencies": {
