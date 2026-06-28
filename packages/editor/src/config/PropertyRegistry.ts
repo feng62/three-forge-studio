@@ -47,8 +47,3 @@ class PropertyRegistryClass {
 
 export const PropertyRegistry = new PropertyRegistryClass()
 
-// =========================================================
-// 注册基础内置对象的属性
-// =========================================================
-import './properties'
-
