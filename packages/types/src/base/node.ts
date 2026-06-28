@@ -23,6 +23,16 @@ export interface ForgeSceneNode {
   geometry?: string;
   material?: string | string[];
 
+  /** 灯光特有属性 */
+  color?: number;
+  intensity?: number;
+  distance?: number;
+  angle?: number;
+  penumbra?: number;
+  decay?: number;
+  width?: number;
+  height?: number;
+
   /** 该节点挂载的自定义插件扩展数据 */
   extensions?: ForgeExtensions;
 

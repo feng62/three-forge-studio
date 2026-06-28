@@ -28,6 +28,7 @@
     "hotkeys-js": "^4.0.4",
     "pinia": "^3.0.4",
     "three": "catalog:",
+    "three-mesh-bvh": "^0.9.10",
     "three-stdlib": "^2.36.1",
     "three-viewport-gizmo": "^2.2.0",
     "vue": "catalog:"

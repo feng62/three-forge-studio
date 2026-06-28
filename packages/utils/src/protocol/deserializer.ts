@@ -1,6 +1,6 @@
 import { ObjectLoader, Object3D } from 'three';
 import { ForgeSceneJSON, ForgeSceneNode } from '@forge/types';
-import { ForgePlugin } from './plugin';
+import { ForgePlugin } from '@forge/types';
 import { DeserializeReport } from './types';
 import { ForgeValidator } from './validator';
 
@@ -93,6 +93,12 @@ export class ForgeDeserializer {
     // 4. 并行遍历新创建出来的原生 Object3D 树以及对应的 Forge JSON 节点树，
     // 为了触发各个节点层级的插件反序列化钩子。
     await this.deserializeNode(json.scene, rootObject, registeredPluginNames, report);
+
+    // 5. 垃圾清理阶段：清理为了强制序列化外部模型衍生材质而构建的虚拟节点
+    const dummy = rootObject.getObjectByName('__ForgeDummy__');
+    if (dummy) {
+      dummy.removeFromParent();
+    }
 
     return report;
   }

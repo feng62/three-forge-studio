@@ -3,7 +3,8 @@ import { ref, toRaw } from 'vue';
 import { db, type Project } from '../db/database';
 import { useEngineStore } from './engineStore';
 import { ForgeSerializer, ForgeDeserializer } from '@forge/utils';
-import { ModelOverridePlugin } from '@forge/plugins';
+import { CoreExternalModelPlugin } from '../plugins/ExternalModelPlugin';
+import { uiPlugins } from '../plugins';
 import * as THREE from 'three';
 
 export const useProjectStore = defineStore('project', () => {
@@ -82,7 +83,11 @@ export const useProjectStore = defineStore('project', () => {
     try {
       const dataObj = JSON.parse(data);
       if (Object.keys(dataObj).length > 0) {
-        const deserializer = new ForgeDeserializer([new ModelOverridePlugin()]);
+        const serializers = uiPlugins.map(p => p.serializer).filter(Boolean);
+        const deserializer = new ForgeDeserializer([
+          new CoreExternalModelPlugin(engineStore.engine.assetManager),
+          ...serializers
+        ]);
         const report = await deserializer.deserialize(dataObj);
         if (report.scene) {
           engineStore.engine.loadScene(report.scene as THREE.Scene);
@@ -154,7 +159,20 @@ export const useProjectStore = defineStore('project', () => {
     // 执行序列化
     let data = '{}';
     try {
-      const serializer = new ForgeSerializer([new ModelOverridePlugin()]);
+      if (engineStore.engine.camera && engineStore.engine.orbitControls) {
+        if (!engineStore.engine.scene.children.includes(engineStore.engine.camera)) {
+          engineStore.engine.camera.name = 'MainCamera';
+          engineStore.engine.scene.add(engineStore.engine.camera);
+        }
+        engineStore.engine.camera.userData.orbitTarget = {
+          x: engineStore.engine.orbitControls.target.x,
+          y: engineStore.engine.orbitControls.target.y,
+          z: engineStore.engine.orbitControls.target.z
+        };
+      }
+
+      const serializers = uiPlugins.map(p => p.serializer).filter(Boolean);
+      const serializer = new ForgeSerializer(serializers);
       const resultJSON = serializer.serialize(engineStore.engine.scene);
       data = JSON.stringify(resultJSON);
     } catch (err) {
@@ -224,8 +242,10 @@ export const useProjectStore = defineStore('project', () => {
    * 开启自动保存循环，每隔 30 秒保存一次
    */
   let autoSaveInterval: number | null = null;
-  const startAutoSave = () => {
-    if (autoSaveInterval !== null) return;
+  const startAutoSave = (intervalMs: number = 30000) => {
+    if (autoSaveInterval !== null) {
+      window.clearInterval(autoSaveInterval);
+    }
     autoSaveInterval = window.setInterval(async () => {
       // 只有在引擎准备好，且场景有内容或者已经有当前项目时才自动保存
       const engineStore = useEngineStore();
@@ -233,7 +253,7 @@ export const useProjectStore = defineStore('project', () => {
       
       // 不要在保存时影响 UI 的提示（可以用静默保存）
       await saveProject();
-    }, 30000);
+    }, intervalMs);
   };
 
   const stopAutoSave = () => {

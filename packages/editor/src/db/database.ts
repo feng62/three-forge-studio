@@ -11,8 +11,14 @@ export interface Project {
   updatedAt: number;
 }
 
+export interface SettingRecord {
+  key: string;
+  value: any;
+}
+
 export class ThreeForgeDB extends Dexie {
   projects!: Table<Project>;
+  settings!: Table<SettingRecord, string>;
 
   /**
    * 初始化数据库并定义表结构与索引
@@ -23,6 +29,11 @@ export class ThreeForgeDB extends Dexie {
     // Define tables and indexes
     this.version(1).stores({
       projects: '++id, uuid, name, updatedAt, createdAt' // Primary key and indexed props
+    });
+    
+    // Add settings table
+    this.version(2).stores({
+      settings: 'key' // Key-value store
     });
   }
 }

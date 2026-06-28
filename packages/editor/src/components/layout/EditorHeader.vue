@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useDark, useToggle } from '@vueuse/core';
-import { PhMoon, PhSun, PhFolderOpen, PhPlus } from '@phosphor-icons/vue';
+import { PhFolderOpen, PhPlus, PhGear } from '@phosphor-icons/vue';
 import Toolbar from '../ui/Toolbar.vue';
-import ThemeSwitcher from '../ui/ThemeSwitcher.vue';
 import ProjectHistoryModal from '../ui/ProjectHistoryModal.vue';
 import ExportButton from '../ui/ExportButton.vue';
 import { useProjectStore } from '../../stores/projectStore';
 
-// Light/Dark mode
-const isDark = useDark({
-  valueDark: 'dark',
-  valueLight: ''
-});
-const toggleDark = useToggle(isDark);
+import SceneDataViewer from '../ui/SceneDataViewer.vue';
+import GlobalSettings from '../ui/GlobalSettings.vue';
+
+// Settings
+const showSettings = ref(false);
+const activeTab = ref('globalSettings');
 
 // Project Management
 const projectStore = useProjectStore();
@@ -136,20 +134,57 @@ const handleNewProject = async () => {
       
       <div class="w-px h-6 bg-border mx-2"></div>
       
-      <ThemeSwitcher />
-
-      <!-- Light/Dark -->
+      <!-- Settings -->
       <button 
-        @click="toggleDark()" 
+        @click="showSettings = true" 
         class="w-8 h-8 rounded-full hover:bg-bg-base flex items-center justify-center text-text-muted hover:text-text-main transition-colors cursor-pointer border border-transparent hover:border-border"
-        title="切换亮/暗模式"
+        title="本地设置"
       >
-        <PhMoon v-if="isDark" :size="18" weight="duotone" />
-        <PhSun v-else :size="18" weight="duotone" />
+        <PhGear :size="18" weight="duotone" />
       </button>
     </div>
 
     <!-- History Modal -->
     <ProjectHistoryModal v-model="showHistory" />
+
+    <!-- Settings Drawer -->
+    <el-drawer
+      v-model="showSettings"
+      title="本地设置"
+      direction="rtl"
+      size="700px"
+      append-to-body
+      :with-header="true"
+      custom-class="settings-drawer"
+    >
+      <el-tabs v-model="activeTab" class="h-full flex flex-col custom-tabs">
+        <el-tab-pane label="场景详情" name="sceneDetails" class="h-full">
+          <SceneDataViewer />
+        </el-tab-pane>
+        <el-tab-pane label="编辑器设置" name="globalSettings" class="h-full p-2">
+          <GlobalSettings />
+        </el-tab-pane>
+        <el-tab-pane label="快捷键设置" name="shortcuts" class="h-full">
+          <div class="text-sm text-text-muted mt-4 p-2">开发中...</div>
+        </el-tab-pane>
+      </el-tabs>
+    </el-drawer>
   </header>
 </template>
+
+<style scoped>
+:deep(.settings-drawer .el-drawer__body) {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+:deep(.custom-tabs .el-tabs__content) {
+  flex: 1;
+  overflow: hidden;
+  padding: 16px;
+}
+:deep(.custom-tabs .el-tabs__header) {
+  margin: 0;
+  padding: 0 16px;
+}
+</style>

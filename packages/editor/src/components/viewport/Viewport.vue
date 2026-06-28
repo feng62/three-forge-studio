@@ -27,6 +27,11 @@ onMounted(() => {
     engine.onSceneGraphChanged = () => {
       engineStore.incrementSceneGraphVersion()
     }
+    
+    engine.onObjectSelected = (uuid: string | null) => {
+      engineStore.setSelectedObject(uuid)
+    }
+
     // trigger once to populate initial tree
     engineStore.incrementSceneGraphVersion()
 
@@ -60,10 +65,32 @@ watch(() => themeStore.currentTheme, (newTheme) => {
     engine.setTheme(newTheme)
   }
 })
+
+watch(() => engineStore.selectedObjectUuid, (newUuid) => {
+  if (engine) {
+    engine.selectObjectByUuid(newUuid)
+  }
+})
+
+const handleDrop = (e: DragEvent) => {
+  const data = e.dataTransfer?.getData('application/forge-asset')
+  if (data && engine) {
+    try {
+      const parsed = JSON.parse(data)
+      engine.addAsset(parsed.type, e.clientX, e.clientY, parsed)
+    } catch (err) {
+      console.error('Failed to parse dropped asset data:', err)
+    }
+  }
+}
 </script>
 
 <template>
-  <main class="flex-1 h-full bg-transparent relative overflow-hidden flex items-center justify-center transition-colors duration-300">
+  <main 
+    class="flex-1 h-full bg-transparent relative overflow-hidden flex items-center justify-center transition-colors duration-300"
+    @dragover.prevent
+    @drop.prevent="handleDrop"
+  >
     <!-- Grid Background Pattern -->
     <div class="absolute inset-0 opacity-[0.03] pointer-events-none transition-opacity duration-300" 
          style="background-image: radial-gradient(var(--color-text-main) 1px, transparent 1px); background-size: 24px 24px;">

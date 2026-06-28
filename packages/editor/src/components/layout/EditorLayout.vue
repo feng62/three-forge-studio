@@ -6,17 +6,16 @@ import LeftPanel from './LeftPanel.vue';
 import RightPanel from './RightPanel.vue';
 import Viewport from '../viewport/Viewport.vue';
 import { useProjectStore } from '../../stores/projectStore';
-import { useAutoSave } from '../../composables/useAutoSave';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { ElLoading } from 'element-plus';
 
 const vLoading = ElLoading.directive;
 
-// Activate auto-save
-useAutoSave(30000);
-
 const projectStore = useProjectStore();
+const settingsStore = useSettingsStore();
 
 onMounted(async () => {
+  await settingsStore.initSettings();
   shortcutManager.init();
 
   // 自动加载最近的项目或临时保存

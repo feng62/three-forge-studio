@@ -54,6 +54,60 @@ export class ShortcutManager {
       })
     })
 
+    // Delete Object
+    hotkeys('delete, backspace', (event) => {
+      // Don't prevent default blindly for backspace, otherwise users can't delete text in inputs
+      // hotkeys.filter already filters out inputs/textareas, but just in case
+      event.preventDefault()
+      import('../stores/engineStore').then(({ useEngineStore }) => {
+        const engineStore = useEngineStore()
+        const selectedId = engineStore.selectedObjectUuid
+        const engine = engineStore.engine
+        if (selectedId && engine) {
+          engine.removeObjectByUuid(selectedId)
+          engineStore.setSelectedObject(null)
+          import('element-plus').then(({ ElMessage }) => {
+            ElMessage.success('已删除对象')
+          })
+        }
+      })
+    })
+
+    // Focus Object
+    hotkeys('f', (event) => {
+      event.preventDefault()
+      import('../stores/engineStore').then(({ useEngineStore }) => {
+        const engineStore = useEngineStore()
+        const selectedId = engineStore.selectedObjectUuid
+        const engine = engineStore.engine
+        if (selectedId && engine) {
+          engine.focusObject(selectedId)
+        }
+      })
+    })
+
+    // Undo
+    hotkeys('ctrl+z, command+z', (event) => {
+      event.preventDefault()
+      import('../history/HistoryManager').then(({ historyManager }) => {
+        historyManager.undo()
+        import('element-plus').then(({ ElMessage }) => {
+          ElMessage.info('已撤销')
+        })
+      })
+    })
+
+    // Redo
+    hotkeys('ctrl+y, command+y, ctrl+shift+z, command+shift+z', (event) => {
+      event.preventDefault()
+      import('../history/HistoryManager').then(({ historyManager }) => {
+        historyManager.redo()
+        import('element-plus').then(({ ElMessage }) => {
+          ElMessage.info('已重做')
+        })
+      })
+    })
+
     this.initialized = true
     console.log('[ShortcutManager] Initialized')
   }
@@ -68,6 +122,10 @@ export class ShortcutManager {
     hotkeys.unbind('s')
     hotkeys.unbind('space')
     hotkeys.unbind('ctrl+s, command+s')
+    hotkeys.unbind('delete, backspace')
+    hotkeys.unbind('f')
+    hotkeys.unbind('ctrl+z, command+z')
+    hotkeys.unbind('ctrl+y, command+y, ctrl+shift+z, command+shift+z')
     this.initialized = false
   }
 }

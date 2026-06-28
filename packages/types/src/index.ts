@@ -5,3 +5,4 @@ export * from './base/assets';
 export * from './base/node';
 export * from './base/scene';
 export * from './extensions';
+export * from './plugins';

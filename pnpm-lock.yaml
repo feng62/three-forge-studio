@@ -174,6 +174,9 @@ importers:
       three:
         specifier: 'catalog:'
         version: 0.170.0
+      three-mesh-bvh:
+        specifier: ^0.9.10
+        version: 0.9.10(three@0.170.0)
       three-stdlib:
         specifier: ^2.36.1
         version: 2.36.1(three@0.170.0)
@@ -211,11 +214,22 @@ importers:
       '@forge/utils':
         specifier: workspace:*
         version: link:../utils
+      gsap:
+        specifier: ^3.15.0
+        version: 3.15.0
       three:
         specifier: 'catalog:'
         version: 0.170.0
 
-  packages/types: {}
+  packages/types:
+    dependencies:
+      three:
+        specifier: 'catalog:'
+        version: 0.170.0
+    devDependencies:
+      vue:
+        specifier: 'catalog:'
+        version: 3.5.39(typescript@6.0.3)
 
   packages/utils:
     dependencies:
@@ -1751,6 +1765,11 @@ packages:
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
+
+  three-mesh-bvh@0.9.10:
+    resolution: {integrity: sha512-UOlTgPIeqUURcwaG8knxvBaruwZlC4X3/WSHEFO7rYvMVv/YNUrkfFEszvfj36pXV88dCHoHNnIp0PifkirnTQ==}
+    peerDependencies:
+      three: '>= 0.159.0'
 
   three-stdlib@2.36.1:
     resolution: {integrity: sha512-XyGQrFmNQ5O/IoKm556ftwKsBg11TIb301MB5dWNicziQBEs2g3gtOYIf7pFiLa0zI2gUwhtCjv9fmjnxKZ1Cg==}
@@ -3468,6 +3487,10 @@ snapshots:
   tailwindcss@4.3.1: {}
 
   tapable@2.3.3: {}
+
+  three-mesh-bvh@0.9.10(three@0.170.0):
+    dependencies:
+      three: 0.170.0
 
   three-stdlib@2.36.1(three@0.170.0):
     dependencies:

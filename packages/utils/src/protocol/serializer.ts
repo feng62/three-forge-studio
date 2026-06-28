@@ -1,6 +1,7 @@
 import { Object3D, Mesh, PerspectiveCamera } from 'three';
+import { getPathToExternalRoot } from './ExternalModelUtils';
 import { ForgeSceneJSON, ForgeSceneNode, ForgeAssets, ForgeExtensions } from '@forge/types';
-import { ForgePlugin } from './plugin';
+import { ForgePlugin } from '@forge/types';
 
 export class ForgeSerializer {
   private plugins: ForgePlugin[];
@@ -16,9 +17,74 @@ export class ForgeSerializer {
    * @returns 序列化后的 JSON 数据
    */
   public serialize(scene: Object3D, projectName: string = 'Untitled Project'): ForgeSceneJSON {
+    const externalModels: { parent: Object3D; object: Object3D }[] = [];
+    const helpers: { parent: Object3D; object: Object3D }[] = [];
+    const modifiedMaterials = new Set<THREE.Material>();
+
+    const findNodesToDetach = (node: Object3D) => {
+      if (node.userData && node.userData.isExternalModel) {
+        if (node.parent) {
+          externalModels.push({ parent: node.parent, object: node });
+        }
+        // 收集所有被标记修改的材质，确保序列化时能将其提取到 JSON 的 materials 列表中
+        node.traverse((child) => {
+          if (child.userData?._externalModifications?.material && (child as any).material) {
+            const mat = (child as any).material;
+            if (Array.isArray(mat)) {
+              mat.forEach(m => modifiedMaterials.add(m));
+            } else {
+              modifiedMaterials.add(mat);
+            }
+          }
+        });
+        return; // do not traverse inside external model
+      }
+
+      if (node.userData && node.userData.isHelper) {
+        if (node.parent) {
+          helpers.push({ parent: node.parent, object: node });
+        }
+        return; // do not traverse inside helper
+      }
+
+      for (const child of node.children) {
+        findNodesToDetach(child);
+      }
+    };
+    findNodesToDetach(scene);
+
+    // 构建虚拟材质包裹节点，欺骗 Three.js 的原生 toJSON，将材质和贴图序列化出来
+    let dummyHolder: Mesh | null = null;
+    if (modifiedMaterials.size > 0) {
+      dummyHolder = new Mesh();
+      dummyHolder.name = '__ForgeDummy__';
+      dummyHolder.material = Array.from(modifiedMaterials);
+      scene.add(dummyHolder);
+    }
+
+    // 临时剥离外部模型和辅助工具，防止原生的 toJSON() 深度遍历抽取无关资产
+    for (const em of externalModels) {
+      em.parent.remove(em.object);
+    }
+    for (const helper of helpers) {
+      helper.parent.remove(helper.object);
+    }
+
     // 1. 利用 Three.js 原生的序列化机制，高效提取原生资产
-    // （包括几何体 geometries, 材质 materials, 贴图 textures, 图片 images 等）。
     const nativeJSON = scene.toJSON() as any;
+
+    // 清理假节点，让其不干扰后续逻辑
+    if (dummyHolder) {
+      scene.remove(dummyHolder);
+    }
+
+    // 恢复外部模型节点和辅助工具
+    for (const em of externalModels) {
+      em.parent.add(em.object);
+    }
+    for (const helper of helpers) {
+      helper.parent.add(helper.object);
+    }
 
     const assets: ForgeAssets = {
       geometries: nativeJSON.geometries || [],
@@ -62,8 +128,11 @@ export class ForgeSerializer {
       settings: {}, // 全局的基础配置，可由特定的工具或插件后续写入
       scene: rootNode,
       assets,
-      extensions: rootExtensions,
     };
+
+    if (rootExtensions) {
+      json.extensions = rootExtensions;
+    }
 
     return json;
   }
@@ -101,6 +170,33 @@ export class ForgeSerializer {
       }
     }
 
+    // 提取光源的特定属性
+    if ((node as any).isLight) {
+      const light = node as any;
+      if (light.color) forgeNode.color = light.color.getHex();
+      if (light.intensity !== undefined) forgeNode.intensity = light.intensity;
+      if (light.distance !== undefined) forgeNode.distance = light.distance;
+      if (light.angle !== undefined) forgeNode.angle = light.angle;
+      if (light.penumbra !== undefined) forgeNode.penumbra = light.penumbra;
+      if (light.decay !== undefined) forgeNode.decay = light.decay;
+      if (light.width !== undefined) forgeNode.width = light.width;
+      if (light.height !== undefined) forgeNode.height = light.height;
+    }
+
+    // 提取并清理用户自定义数据 (userData)
+    if (node.userData && Object.keys(node.userData).length > 0) {
+      const cleanUserData = { ...node.userData };
+      delete cleanUserData.isHelper;
+      delete cleanUserData.isExternalModel;
+      delete cleanUserData.externalModelId;
+      delete cleanUserData._externalModifications;
+      delete cleanUserData._unknownExtensions;
+      delete cleanUserData.cameraAnimations; // Managed by CameraAnimationForgePlugin
+      if (Object.keys(cleanUserData).length > 0) {
+        forgeNode.userData = cleanUserData;
+      }
+    }
+
     // 触发插件钩子，处理该节点专属的扩展逻辑
     let nodeExtensions: ForgeExtensions | undefined = undefined;
 
@@ -120,6 +216,51 @@ export class ForgeSerializer {
     }
     if (nodeExtensions && Object.keys(nodeExtensions).length > 0) {
       forgeNode.extensions = nodeExtensions;
+    }
+
+    // 处理外部模型：作为引用保存，不遍历其深层子节点
+    if (node.userData && node.userData.isExternalModel) {
+      forgeNode.type = 'ExternalModel';
+      if (!forgeNode.extensions) forgeNode.extensions = {};
+      
+      const modifications: Record<string, any> = {};
+      // 遍历其子节点，寻找带有修改标记的节点
+      node.traverse((child) => {
+        if (child.userData && child.userData._externalModifications) {
+          const path = getPathToExternalRoot(child);
+          if (path) {
+            const modData: any = {};
+            const extMods = child.userData._externalModifications;
+            
+            if (extMods.transform) {
+              modData.transform = {
+                position: child.position.toArray(),
+                rotation: child.rotation.toArray(),
+                scale: child.scale.toArray()
+              };
+            }
+            if (extMods.material && (child as any).material) {
+              const mat = (child as any).material;
+              modData.material = Array.isArray(mat) ? mat.map(m => m.uuid) : mat.uuid;
+            }
+            if (extMods.userData) {
+              // 浅拷贝 userData 并剔除内部私有属性
+              const ud = { ...child.userData };
+              delete ud._externalModifications;
+              delete ud.isExternalModel;
+              modData.userData = ud;
+            }
+            
+            modifications[path] = modData;
+          }
+        }
+      });
+
+      forgeNode.extensions['core_external_model'] = {
+        id: node.userData.externalModelId,
+        modifications: Object.keys(modifications).length > 0 ? modifications : undefined
+      };
+      return forgeNode;
     }
 
     // 递归处理所有子节点
