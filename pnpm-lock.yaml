@@ -147,6 +147,9 @@ importers:
       '@forge/plugins':
         specifier: workspace:*
         version: link:../plugins
+      '@forge/types':
+        specifier: workspace:*
+        version: link:../types
       '@forge/utils':
         specifier: workspace:*
         version: link:../utils

@@ -2,6 +2,7 @@ import { Object3D, Mesh, PerspectiveCamera } from 'three';
 import { getPathToExternalRoot } from './ExternalModelUtils';
 import { ForgeSceneJSON, ForgeSceneNode, ForgeAssets, ForgeExtensions } from '@forge/types';
 import { ForgePlugin } from '@forge/types';
+import * as THREE from 'three'
 
 export class ForgeSerializer {
   private plugins: ForgePlugin[];

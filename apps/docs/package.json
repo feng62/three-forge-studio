@@ -9,9 +9,9 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "vue": "latest"
+    "vue": "catalog:"
   },
   "devDependencies": {
-    "vitepress": "latest"
+    "vitepress": "catalog:"
   }
 }
