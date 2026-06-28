@@ -33,6 +33,17 @@ export interface ForgeSceneNode {
   width?: number;
   height?: number;
 
+  /** 场景特有属性 */
+  background?: number | string; // hex color or texture uuid
+  environment?: string; // texture uuid
+  fog?: {
+    type: 'Fog' | 'FogExp2';
+    color: number;
+    near?: number;
+    far?: number;
+    density?: number;
+  };
+
   /** 该节点挂载的自定义插件扩展数据 */
   extensions?: ForgeExtensions;
 

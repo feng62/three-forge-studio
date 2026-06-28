@@ -200,6 +200,30 @@ export class ForgeSerializer {
       if (light.height !== undefined) forgeNode.height = light.height;
     }
 
+    // 提取场景的特定属性
+    if ((node as any).isScene) {
+      const scene = node as any;
+      if (scene.background) {
+        if (scene.background.isColor) {
+          forgeNode.background = scene.background.getHex();
+        } else if (scene.background.isTexture) {
+          forgeNode.background = scene.background.uuid;
+        }
+      }
+      if (scene.environment && scene.environment.isTexture) {
+        forgeNode.environment = scene.environment.uuid;
+      }
+      if (scene.fog) {
+        forgeNode.fog = {
+          type: scene.fog.isFogExp2 ? 'FogExp2' : 'Fog',
+          color: scene.fog.color.getHex(),
+          near: scene.fog.near,
+          far: scene.fog.far,
+          density: scene.fog.density
+        };
+      }
+    }
+
     // 提取并清理用户自定义数据 (userData)
     if (node.userData && Object.keys(node.userData).length > 0) {
       const cleanUserData = { ...node.userData };

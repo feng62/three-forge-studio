@@ -30,8 +30,8 @@ export class SetPropertyCommand implements Command {
     this.propertyPath = propertyPath
     this.newValue = newValue
     
-    // 如果没有传入旧值，我们尝试去读取
-    if (oldValue !== undefined) {
+    // 如果明确传入了旧值（哪怕是 undefined），就用传入的值
+    if (arguments.length >= 5) {
       this.oldValue = oldValue
     } else {
       this.oldValue = this.getValueByPath(object, propertyPath)

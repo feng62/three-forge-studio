@@ -30,6 +30,12 @@ PropertyRegistry.register(
       name: '雾效 (Fog)',
       fields: [
         {
+          id: 'scene.fog.enabled',
+          label: '启用雾效 (Enable)',
+          type: 'boolean',
+          path: 'fog'
+        },
+        {
           id: 'scene.fog.color',
           label: '颜色',
           type: 'color',

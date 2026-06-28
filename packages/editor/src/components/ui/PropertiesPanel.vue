@@ -49,6 +49,18 @@ const syncTransformToLocalState = (obj: THREE.Object3D, syncAll: boolean = false
       if (syncAll || ['position', 'rotation', 'scale'].includes(field.path)) {
         let val = getValueByPath(obj, field.path)
         
+        // 针对雾效提供默认值，防止 UI 显示异常
+        if (val === undefined && field.path.startsWith('fog.')) {
+          if (field.path === 'fog.color') val = 0xcccccc
+          if (field.path === 'fog.near') val = 1
+          if (field.path === 'fog.far') val = 100
+        }
+
+        // 特殊处理雾效开关
+        if (field.path === 'fog' && field.type === 'boolean') {
+          val = !!val
+        }
+
         // 特殊处理 rotation，转换为角度
         if (field.path === 'rotation' && val && val.isEuler) {
           val = {
@@ -138,6 +150,16 @@ const handleFieldInput = (field: PropertyField, val: any) => {
     finalVal = new THREE.Vector3(val.x, val.y, val.z)
   } else if (field.type === 'color' && typeof val === 'number') {
     finalVal = new THREE.Color(val)
+  } else if (field.path === 'fog' && field.type === 'boolean') {
+    if (val) {
+      finalVal = selectedObject.value.fog || new THREE.Fog(
+        localState.value['scene.fog.color'] ?? 0xcccccc,
+        localState.value['scene.fog.near'] ?? 1,
+        localState.value['scene.fog.far'] ?? 100
+      )
+    } else {
+      finalVal = null
+    }
   }
 
   // 实时修改对象本身，但不记入历史
@@ -146,7 +168,15 @@ const handleFieldInput = (field: PropertyField, val: any) => {
   for (let i = 0; i < keys.length - 1; i++) {
     if (current[keys[i]] == null) {
       if (keys[i] === 'fog') {
-        current[keys[i]] = new THREE.Fog(0xcccccc, 1, 100)
+        current[keys[i]] = new THREE.Fog(
+          localState.value['scene.fog.color'] ?? 0xcccccc,
+          localState.value['scene.fog.near'] ?? 1,
+          localState.value['scene.fog.far'] ?? 100
+        )
+        // 自动同步启用开关的 UI 状态
+        if (localState.value['scene.fog.enabled'] === false) {
+          localState.value['scene.fog.enabled'] = true
+        }
       } else {
         break
       }
@@ -185,10 +215,20 @@ const handleFieldChange = (field: PropertyField, val: any) => {
     finalVal = new THREE.Vector3(val.x, val.y, val.z)
   } else if (field.type === 'color' && typeof val === 'number') {
     finalVal = new THREE.Color(val)
+  } else if (field.path === 'fog' && field.type === 'boolean') {
+    if (val) {
+      finalVal = selectedObject.value.fog || new THREE.Fog(
+        localState.value['scene.fog.color'] ?? 0xcccccc,
+        localState.value['scene.fog.near'] ?? 1,
+        localState.value['scene.fog.far'] ?? 100
+      )
+    } else {
+      finalVal = null
+    }
   }
 
   // 如果没有改变，不记录
-  if (oldVal !== undefined) {
+  if (oldVal !== finalVal) {
     const cmd = new SetPropertyCommand(
       engineStore.engine,
       selectedObject.value,
