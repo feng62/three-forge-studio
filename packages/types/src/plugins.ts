@@ -57,6 +57,8 @@ export interface ForgeAppPlugin {
   ui?: {
     /** 侧边栏面板对应的 Vue 组件 */
     panel: Component
+    /** 底部面板对应的 Vue 组件（可选） */
+    bottomPanel?: Component
     /** UI 左侧标签页显示的文字（支持按行拆分） */
     tabLabel: string[]
   }

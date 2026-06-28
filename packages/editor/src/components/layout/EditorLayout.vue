@@ -7,12 +7,20 @@ import RightPanel from './RightPanel.vue';
 import Viewport from '../viewport/Viewport.vue';
 import { useProjectStore } from '../../stores/projectStore';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useEngineStore } from '../../stores/engineStore';
+import { uiPlugins } from '../../plugins';
 import { ElLoading } from 'element-plus';
+import { computed } from 'vue';
 
 const vLoading = ElLoading.directive;
 
 const projectStore = useProjectStore();
 const settingsStore = useSettingsStore();
+const engineStore = useEngineStore();
+
+const pluginsWithBottomPanel = computed(() => {
+  return uiPlugins.filter(p => p.ui?.bottomPanel);
+});
 
 onMounted(async () => {
   await settingsStore.initSettings();
@@ -45,7 +53,24 @@ onUnmounted(() => {
     
     <div class="flex-1 flex overflow-hidden relative z-10">
       <LeftPanel />
-      <Viewport />
+      <div class="flex-1 flex flex-col relative overflow-hidden">
+        <Viewport class="flex-1" />
+        
+        <!-- Bottom Panels Area -->
+        <div 
+          v-if="pluginsWithBottomPanel.length > 0"
+          class="flex-shrink-0 flex flex-col bg-panel border-t border-border z-10 max-h-[40vh] overflow-y-auto custom-scrollbar"
+        >
+          <component 
+            v-for="plugin in pluginsWithBottomPanel" 
+            :key="plugin.name"
+            :is="plugin.ui!.bottomPanel" 
+            :engine="engineStore.engine"
+            :sceneGraphVersion="engineStore.sceneGraphVersion"
+            @save="projectStore.saveProject()"
+          />
+        </div>
+      </div>
       <RightPanel />
     </div>
   </div>
