@@ -8,6 +8,7 @@ import Viewport from '../viewport/Viewport.vue';
 import { useProjectStore } from '../../stores/projectStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useEngineStore } from '../../stores/engineStore';
+import { useUiStore } from '../../stores/uiStore';
 import { uiPlugins } from '../../plugins';
 import { ElLoading } from 'element-plus';
 import { computed } from 'vue';
@@ -17,8 +18,17 @@ const vLoading = ElLoading.directive;
 const projectStore = useProjectStore();
 const settingsStore = useSettingsStore();
 const engineStore = useEngineStore();
+const uiStore = useUiStore();
 
-const pluginsWithBottomPanel = computed(() => uiPlugins.filter(p => p.ui && p.ui.bottomPanel));
+const pluginsWithBottomPanel = computed(() => {
+  return uiPlugins.filter(p => {
+    // 只有具有 bottomPanel 的插件
+    if (!p.ui || !p.ui.bottomPanel) return false;
+    
+    // 并且该插件当前在左侧边栏被激活
+    return uiStore.activeLeftTab === 'plugin_' + p.name;
+  });
+});
 
 onMounted(async () => {
   await settingsStore.initSettings();

@@ -19,17 +19,19 @@ import { db } from '../../db/db';
 import { liveQuery } from 'dexie';
 import { onMounted, onUnmounted } from 'vue';
 import { useProjectStore } from '../../stores/projectStore';
+import { useUiStore } from '../../stores/uiStore';
 import { uiPlugins } from '../../plugins';
 import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
 
 const settingsStore = useSettingsStore();
 const engineStore = useEngineStore();
 const projectStore = useProjectStore();
+const uiStore = useUiStore();
 
 const pluginsWithUi = computed(() => uiPlugins.filter(p => p.ui && p.ui.panel));
 
-const activeTab = ref('base');
-const innerTab = ref('models');
+const { activeLeftTab: activeTab, activeInnerTab: innerTab } = storeToRefs(uiStore);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const externalModels = ref<any[]>([]);
