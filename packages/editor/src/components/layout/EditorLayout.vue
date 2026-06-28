@@ -90,12 +90,21 @@ onUnmounted(() => {
 /* Base overrides if needed, mostly handled by tailwind */
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: all 0.3s ease-out;
+  transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease-out, transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  overflow: hidden;
 }
 
 .slide-up-enter-from,
 .slide-up-leave-to {
-  transform: translateY(100%);
+  max-height: 0px !important;
   opacity: 0;
+  transform: translateY(20px);
+}
+
+.slide-up-enter-to,
+.slide-up-leave-from {
+  max-height: 40vh; /* matches tailwind max-h-[40vh] */
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>
