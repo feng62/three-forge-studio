@@ -290,7 +290,7 @@ export class AssetManager {
           loadedObject = await loader.loadAsync(url)
         } else {
           console.warn(`[AssetManager] Unsupported file extension: ${ext}`)
-          return
+          return null
         }
 
         if (loadedObject) {
@@ -312,7 +312,6 @@ export class AssetManager {
             wrapper.add(loadedObject)
 
             // 如果有放置坐标，计算碰撞点并赋给 Wrapper
-            let placed = false
             if (clientX !== undefined && clientY !== undefined && this.engine.container) {
               const rect = this.engine.container.getBoundingClientRect()
               const mouse = new THREE.Vector2(

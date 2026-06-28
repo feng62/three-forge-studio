@@ -14,7 +14,7 @@ self.onmessage = async (e: MessageEvent) => {
           data: model.data, 
           ext: model.type,
           name: model.name 
-        }, [model.data]);
+        }, { transfer: [model.data] });
       } else {
         self.postMessage({ type: 'ERROR', id, error: 'Model not found in IndexedDB' });
       }

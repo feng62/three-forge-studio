@@ -111,7 +111,7 @@ export class SelectionManager {
                 hasExternalModelParent = true;
                 break;
               }
-              p = p.parent;
+              p = p.parent || null;
             }
             if (!hasExternalModelParent) break;
           }

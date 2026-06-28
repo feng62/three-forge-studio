@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {},
   "dependencies": {
+    "@element-plus/icons-vue": "catalog:",
     "@forge/types": "workspace:*",
     "@forge/utils": "workspace:*",
     "gsap": "catalog:",

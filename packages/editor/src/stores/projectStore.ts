@@ -83,7 +83,7 @@ export const useProjectStore = defineStore('project', () => {
     try {
       const dataObj = JSON.parse(data);
       if (Object.keys(dataObj).length > 0) {
-        const serializers = uiPlugins.map(p => p.serializer).filter(Boolean);
+        const serializers = uiPlugins.map(p => p.serializer).filter(Boolean) as any[];
         const deserializer = new ForgeDeserializer([
           new CoreExternalModelPlugin(engineStore.engine.assetManager),
           ...serializers
@@ -171,7 +171,7 @@ export const useProjectStore = defineStore('project', () => {
         };
       }
 
-      const serializers = uiPlugins.map(p => p.serializer).filter(Boolean);
+      const serializers = uiPlugins.map(p => p.serializer).filter(Boolean) as any[];
       const serializer = new ForgeSerializer(serializers);
       const resultJSON = serializer.serialize(engineStore.engine.scene);
       data = JSON.stringify(resultJSON);

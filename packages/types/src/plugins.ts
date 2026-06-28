@@ -55,12 +55,12 @@ export interface ForgeAppPlugin {
   
   /** 插件提供的 UI 界面及注册配置 */
   ui?: {
-    /** 侧边栏面板对应的 Vue 组件 */
-    panel: Component
+    /** 侧边栏面板对应的 Vue 组件（可选） */
+    panel?: Component
     /** 底部面板对应的 Vue 组件（可选） */
     bottomPanel?: Component
-    /** UI 左侧标签页显示的文字（支持按行拆分） */
-    tabLabel: string[]
+    /** UI 左侧标签页显示的文字（支持按行拆分，如果有panel则必须） */
+    tabLabel?: string[]
   }
   
   /** 插件专属的数据序列化器实例，将被自动挂载至 IndexedDB 的存取流水线中 */

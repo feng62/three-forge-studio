@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PhDownloadSimple } from '@phosphor-icons/vue';
 import { useProjectStore } from '../../stores/projectStore';
-import { db } from '../../db/db';
+import { db } from '../../db/database';
 import { ElMessage } from 'element-plus';
 
 const projectStore = useProjectStore();

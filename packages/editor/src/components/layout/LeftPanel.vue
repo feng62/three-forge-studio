@@ -20,10 +20,13 @@ import { liveQuery } from 'dexie';
 import { onMounted, onUnmounted } from 'vue';
 import { useProjectStore } from '../../stores/projectStore';
 import { uiPlugins } from '../../plugins';
+import { computed } from 'vue';
 
 const settingsStore = useSettingsStore();
 const engineStore = useEngineStore();
 const projectStore = useProjectStore();
+
+const pluginsWithUi = computed(() => uiPlugins.filter(p => p.ui && p.ui.panel));
 
 const activeTab = ref('base');
 const innerTab = ref('models');
@@ -209,14 +212,14 @@ const handleExternalDragStart = (e: DragEvent, model: any) => {
         </el-tabs>
       </el-tab-pane>
 
-      <el-tab-pane v-for="plugin in uiPlugins" :key="plugin.name" :name="'plugin_' + plugin.name" class="h-full flex flex-col">
+      <el-tab-pane v-for="plugin in pluginsWithUi" :key="plugin.name" :name="'plugin_' + plugin.name" class="h-full flex flex-col">
         <template #label>
           <div class="flex flex-col items-center justify-center gap-[2px]" style="line-height: 1.2;">
-            <span v-for="(line, idx) in plugin.ui.tabLabel" :key="idx">{{ line }}</span>
+            <span v-for="(line, idx) in plugin.ui!.tabLabel" :key="idx">{{ line }}</span>
           </div>
         </template>
         <component 
-          :is="plugin.ui.panel" 
+          :is="plugin.ui!.panel" 
           :engine="engineStore.engine"
           :sceneGraphVersion="engineStore.sceneGraphVersion"
           @save="projectStore.saveProject()" 

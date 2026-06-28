@@ -18,9 +18,7 @@ const projectStore = useProjectStore();
 const settingsStore = useSettingsStore();
 const engineStore = useEngineStore();
 
-const pluginsWithBottomPanel = computed(() => {
-  return uiPlugins.filter(p => p.ui?.bottomPanel);
-});
+const pluginsWithBottomPanel = computed(() => uiPlugins.filter(p => p.ui && p.ui.bottomPanel));
 
 onMounted(async () => {
   await settingsStore.initSettings();
