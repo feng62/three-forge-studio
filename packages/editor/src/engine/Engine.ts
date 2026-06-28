@@ -151,11 +151,21 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
       const width = this.container.clientWidth
       const height = this.container.clientHeight
       const canvas = this.renderer.domElement
+      const pixelRatio = this.renderer.getPixelRatio()
       
-      if (canvas.width !== width || canvas.height !== height) {
-        this.renderer.setSize(width, height, false)
-        this.camera.aspect = width / height
-        this.camera.updateProjectionMatrix()
+      const targetWidth = Math.floor(width * pixelRatio)
+      const targetHeight = Math.floor(height * pixelRatio)
+      
+      // 当容器大小变为 0（例如被隐藏）时，忽略调整，避免出现除 0 错误和无意义的尺寸
+      if (width > 0 && height > 0) {
+        const aspect = width / height
+        const needsResize = canvas.width !== targetWidth || canvas.height !== targetHeight || Math.abs(this.camera.aspect - aspect) > 0.0001
+        
+        if (needsResize) {
+          this.renderer.setSize(width, height, true)
+          this.camera.aspect = aspect
+          this.camera.updateProjectionMatrix()
+        }
       }
     }
 

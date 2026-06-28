@@ -340,7 +340,7 @@ const handleTextureDragStart = (e: DragEvent, texture: any) => {
   font-weight: 500;
 }
 :deep(.main-tabs > .el-tabs__header .el-tabs__item.is-active) {
-  color: var(--color-primary); /* Increased brightness */
+  color: var(--color-accent); /* Make selected text clearly visible with accent color */
   background-color: var(--color-panel);
   font-weight: 600;
 }
@@ -372,7 +372,7 @@ const handleTextureDragStart = (e: DragEvent, texture: any) => {
   padding: 0 12px !important;
 }
 :deep(.inner-tabs > .el-tabs__header .el-tabs__item.is-active) {
-  color: var(--color-primary); /* Increased brightness */
+  color: var(--color-accent); /* Make selected text clearly visible with accent color */
   font-weight: 600;
 }
 :deep(.inner-tabs > .el-tabs__header .el-tabs__active-bar) {
