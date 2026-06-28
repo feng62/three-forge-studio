@@ -234,11 +234,8 @@ export class ForgeSerializer {
             const extMods = child.userData._externalModifications;
             
             if (extMods.transform) {
-              modData.transform = {
-                position: child.position.toArray(),
-                rotation: child.rotation.toArray(),
-                scale: child.scale.toArray()
-              };
+              child.updateMatrix();
+              modData.matrix = child.matrix.elements;
             }
             if (extMods.material && (child as any).material) {
               const mat = (child as any).material;

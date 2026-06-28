@@ -44,7 +44,12 @@ export class CoreExternalModelPlugin implements ForgePlugin {
             if (child) {
               const mod = data.modifications[path];
               // 还原变换
-              if (mod.transform) {
+              if (mod.matrix) {
+                child.matrix.fromArray(mod.matrix);
+                child.matrix.decompose(child.position, child.quaternion, child.scale);
+                child.userData._externalModifications = child.userData._externalModifications || {};
+                child.userData._externalModifications.transform = true;
+              } else if (mod.transform) {
                 child.position.fromArray(mod.transform.position);
                 child.rotation.fromArray(mod.transform.rotation);
                 child.scale.fromArray(mod.transform.scale);
