@@ -131,6 +131,8 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
     this.camera.updateProjectionMatrix()
     
     this.renderer.setSize(width, height)
+    // Synchronously render to prevent flickering when WebGL buffer is resized/cleared
+    this.render()
   }
 
   /**
