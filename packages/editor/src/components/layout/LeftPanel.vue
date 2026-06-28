@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { 
   PhCube, 
   PhCircle, // for Sphere
@@ -11,17 +11,16 @@ import {
   PhDrop,
   PhDiamond,
   PhUploadSimple,
-  PhTrash
+  PhTrash,
+  PhImage
 } from '@phosphor-icons/vue';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useEngineStore } from '../../stores/engineStore';
 import { db } from '../../db/db';
 import { liveQuery } from 'dexie';
-import { onMounted, onUnmounted } from 'vue';
 import { useProjectStore } from '../../stores/projectStore';
 import { useUiStore } from '../../stores/uiStore';
 import { uiPlugins } from '../../plugins';
-import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 const settingsStore = useSettingsStore();
@@ -33,14 +32,15 @@ const pluginsWithUi = computed(() => uiPlugins.filter(p => p.ui && p.ui.panel));
 
 const { activeLeftTab: activeTab, activeInnerTab: innerTab } = storeToRefs(uiStore);
 const fileInput = ref<HTMLInputElement | null>(null);
+const textureInput = ref<HTMLInputElement | null>(null);
 
-const externalModels = ref<any[]>([]);
+const allExternalAssets = ref<any[]>([]);
 let dbSub: any;
 
 onMounted(() => {
   dbSub = liveQuery(() => db.models.toArray()).subscribe({
     next: (models) => {
-      externalModels.value = models;
+      allExternalAssets.value = models;
     },
     error: (err) => console.error(err)
   });
@@ -48,10 +48,21 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (dbSub) dbSub.unsubscribe();
+  // Revoke object URLs to prevent memory leaks
+  allExternalAssets.value.forEach(asset => {
+    if (asset._previewUrl) URL.revokeObjectURL(asset._previewUrl);
+  });
 });
+
+const customModels = computed(() => allExternalAssets.value.filter(m => m.category === 'model' || !m.category));
+const customTextures = computed(() => allExternalAssets.value.filter(m => m.category === 'texture'));
 
 const triggerUpload = () => {
   fileInput.value?.click();
+};
+
+const triggerTextureUpload = () => {
+  textureInput.value?.click();
 };
 
 const onFileChange = async (e: Event) => {
@@ -67,6 +78,27 @@ const onFileChange = async (e: Event) => {
     type: ext,
     size: file.size,
     data: buffer,
+    category: 'model',
+    createdAt: Date.now()
+  });
+  
+  input.value = '';
+};
+
+const onTextureChange = async (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+  const file = input.files[0];
+  
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  const buffer = await file.arrayBuffer();
+  
+  await db.models.add({
+    name: file.name.replace(/\.[^/.]+$/, ""),
+    type: ext,
+    size: file.size,
+    data: buffer,
+    category: 'texture',
     createdAt: Date.now()
   });
   
@@ -75,6 +107,17 @@ const onFileChange = async (e: Event) => {
 
 const deleteExternalModel = async (id: number) => {
   await db.models.delete(id);
+};
+
+const getTexturePreview = (texture: any) => {
+  if (texture._previewUrl) return texture._previewUrl;
+  if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(texture.type)) {
+    const blob = new Blob([texture.data]);
+    const url = URL.createObjectURL(blob);
+    texture._previewUrl = url;
+    return url;
+  }
+  return null;
 };
 
 const builtInModels = [
@@ -121,6 +164,16 @@ const handleExternalDragStart = (e: DragEvent, model: any) => {
     e.dataTransfer.effectAllowed = 'copy';
   }
 };
+
+const handleTextureDragStart = (e: DragEvent, texture: any) => {
+  if (e.dataTransfer) {
+    e.dataTransfer.setData('application/forge-asset', JSON.stringify({ 
+      type: 'Texture', 
+      id: texture.id 
+    }));
+    e.dataTransfer.effectAllowed = 'copy';
+  }
+};
 </script>
 
 <template>
@@ -146,11 +199,11 @@ const handleExternalDragStart = (e: DragEvent, model: any) => {
             </div>
 
             <!-- External Models -->
-            <div v-if="externalModels.length > 0">
+            <div v-if="customModels.length > 0">
               <h3 class="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3 px-1">外部模型</h3>
               <div class="grid grid-cols-2 gap-2 mb-4">
                 <div 
-                  v-for="model in externalModels" 
+                  v-for="model in customModels" 
                   :key="model.id"
                   draggable="true"
                   @dragstart="handleExternalDragStart($event, model)"
@@ -176,6 +229,42 @@ const handleExternalDragStart = (e: DragEvent, model: any) => {
               >
                 <component :is="model.icon" :size="24" weight="duotone" class="group-hover:text-primary transition-colors" />
                 <span class="text-[11px]">{{ model.label }}</span>
+              </div>
+            </div>
+          </el-tab-pane>
+
+          <!-- Textures -->
+          <el-tab-pane label="贴图" name="textures" class="h-full overflow-y-auto p-3 custom-scrollbar">
+            <div class="mb-4">
+              <button 
+                @click="triggerTextureUpload"
+                class="w-full py-3 border border-dashed border-border rounded-lg text-text-muted hover:border-primary hover:text-primary transition-colors flex flex-col items-center justify-center gap-1 bg-bg-base hover:bg-panel cursor-pointer group"
+              >
+                <PhUploadSimple :size="20" weight="duotone" class="group-hover:text-primary transition-colors" />
+                <span class="text-xs">上传贴图 (JPG/PNG/HDR)</span>
+              </button>
+              <input type="file" ref="textureInput" class="hidden" accept=".png,.jpg,.jpeg,.webp,.gif,.hdr,.exr,.tga" @change="onTextureChange" />
+            </div>
+
+            <!-- Custom Textures -->
+            <div v-if="customTextures.length > 0">
+              <div class="grid grid-cols-2 gap-2 mb-4">
+                <div 
+                  v-for="texture in customTextures" 
+                  :key="texture.id"
+                  draggable="true"
+                  @dragstart="handleTextureDragStart($event, texture)"
+                  class="flex flex-col items-center justify-center gap-2 p-2 bg-bg-base border border-border rounded-lg cursor-grab active:cursor-grabbing hover:border-primary hover:text-primary transition-colors text-text-main group relative"
+                >
+                  <button @click.stop="deleteExternalModel(texture.id)" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity z-10 bg-black/50 rounded-sm">
+                    <PhTrash :size="14" />
+                  </button>
+                  <div class="w-full h-16 flex items-center justify-center bg-black/20 rounded overflow-hidden relative">
+                    <img v-if="getTexturePreview(texture)" :src="getTexturePreview(texture)" class="w-full h-full object-cover" />
+                    <PhImage v-else :size="24" weight="duotone" class="text-text-muted group-hover:text-primary transition-colors" />
+                  </div>
+                  <span class="text-[11px] truncate w-full text-center mt-1" :title="texture.name">{{ texture.name }}</span>
+                </div>
               </div>
             </div>
           </el-tab-pane>
@@ -251,11 +340,12 @@ const handleExternalDragStart = (e: DragEvent, model: any) => {
   font-weight: 500;
 }
 :deep(.main-tabs > .el-tabs__header .el-tabs__item.is-active) {
-  color: var(--color-primary);
+  color: var(--color-primary); /* Increased brightness */
   background-color: var(--color-panel);
+  font-weight: 600;
 }
 :deep(.main-tabs > .el-tabs__header .el-tabs__active-bar) {
-  background-color: var(--color-primary);
+  background-color: var(--color-accent);
 }
 :deep(.main-tabs > .el-tabs__content) {
   height: 100%;
@@ -282,7 +372,7 @@ const handleExternalDragStart = (e: DragEvent, model: any) => {
   padding: 0 12px !important;
 }
 :deep(.inner-tabs > .el-tabs__header .el-tabs__item.is-active) {
-  color: var(--color-text-main);
+  color: var(--color-primary); /* Increased brightness */
   font-weight: 600;
 }
 :deep(.inner-tabs > .el-tabs__header .el-tabs__active-bar) {

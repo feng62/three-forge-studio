@@ -1,12 +1,13 @@
 export interface PropertyField {
   id: string
   label: string
-  type: 'number' | 'boolean' | 'string' | 'color' | 'vector3'
+  type: 'number' | 'boolean' | 'string' | 'color' | 'vector3' | 'select' | 'texture'
   path: string // The object property path e.g. 'position' or 'material.color'
   options?: {
     min?: number
     max?: number
     step?: number
+    options?: { label: string; value: any }[] // for select type
   }
 }
 

@@ -82,14 +82,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
     this.selectionManager.mount()
     this.transformManager.mount()
 
-    this.resizeObserver = new ResizeObserver(() => {
-      this.resize()
-    })
-    this.resizeObserver.observe(this.container)
-    
-    this.resize()
-    window.addEventListener('resize', this.onResize)
-    
+    // 移除 ResizeObserver，在 render 循环中进行自适应，以杜绝动画时的闪烁
     this.start()
   }
 
@@ -100,11 +93,6 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
     this.stop()
     window.removeEventListener('resize', this.onResize)
     
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect()
-      this.resizeObserver = null
-    }
-
     this.selectionManager.unmount()
     this.transformManager.unmount()
 
@@ -119,20 +107,11 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
   }
 
   private onResize = () => {
-    this.resize()
+    // 保留给 window resize 事件
   }
 
   public resize() {
-    if (!this.container) return
-    const width = this.container.clientWidth
-    const height = this.container.clientHeight
-    
-    this.camera.aspect = width / height
-    this.camera.updateProjectionMatrix()
-    
-    this.renderer.setSize(width, height)
-    // Synchronously render to prevent flickering when WebGL buffer is resized/cleared
-    this.render()
+    // 手动调用保留用于强制刷新，但实际逻辑移入 render 循环
   }
 
   /**
@@ -167,6 +146,19 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
    * 每一帧调用的渲染函数
    */
   public render() {
+    // 自动适配容器尺寸防闪烁
+    if (this.container) {
+      const width = this.container.clientWidth
+      const height = this.container.clientHeight
+      const canvas = this.renderer.domElement
+      
+      if (canvas.width !== width || canvas.height !== height) {
+        this.renderer.setSize(width, height, false)
+        this.camera.aspect = width / height
+        this.camera.updateProjectionMatrix()
+      }
+    }
+
     if (this.orbitControls) {
       this.orbitControls.update()
     }

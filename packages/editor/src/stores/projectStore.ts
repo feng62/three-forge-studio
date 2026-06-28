@@ -90,7 +90,52 @@ export const useProjectStore = defineStore('project', () => {
         ]);
         const report = await deserializer.deserialize(dataObj);
         if (report.scene) {
-          engineStore.engine.loadScene(report.scene as THREE.Scene);
+          const scene = report.scene as any;
+          const assetManager = engineStore.engine.assetManager;
+
+          // 重新加载具有 dbId 的贴图并就地更新
+          const reloadTexture = async (oldTex: any) => {
+            if (oldTex && oldTex.isTexture && oldTex.userData && oldTex.userData.dbId !== undefined) {
+              const newTex = await assetManager.loadTextureFromDB(oldTex.userData.dbId);
+              if (newTex) {
+                oldTex.image = newTex.image;
+                if ((newTex as any).isDataTexture) {
+                  (oldTex as any).isDataTexture = true;
+                  oldTex.type = newTex.type;
+                  oldTex.format = newTex.format;
+                  oldTex.minFilter = newTex.minFilter;
+                  oldTex.magFilter = newTex.magFilter;
+                  oldTex.generateMipmaps = newTex.generateMipmaps;
+                  oldTex.colorSpace = newTex.colorSpace;
+                } else {
+                  oldTex.colorSpace = newTex.colorSpace;
+                }
+                oldTex.mapping = newTex.mapping;
+                oldTex.needsUpdate = true;
+              }
+            }
+          };
+
+          const promises: Promise<void>[] = [];
+          if (scene.background) promises.push(reloadTexture(scene.background));
+          if (scene.environment) promises.push(reloadTexture(scene.environment));
+
+          scene.traverse((child: any) => {
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              for (const mat of mats) {
+                for (const key of Object.keys(mat)) {
+                  if (mat[key] && mat[key].isTexture) {
+                    promises.push(reloadTexture(mat[key]));
+                  }
+                }
+              }
+            }
+          });
+
+          await Promise.all(promises);
+
+          engineStore.engine.loadScene(scene);
         }
       }
     } catch (err) {

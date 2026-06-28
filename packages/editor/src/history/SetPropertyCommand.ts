@@ -2,6 +2,7 @@
 import { Command } from './Command'
 import { Engine } from '../engine/Engine'
 import { markExternalModification } from '@forge/utils'
+import * as THREE from 'three'
 
 /**
  * 这是一个通用的属性设置命令，支持 undo/redo。
@@ -86,7 +87,13 @@ export class SetPropertyCommand implements Command {
     const keys = path.split('.')
     let current = obj
     for (let i = 0; i < keys.length - 1; i++) {
-      if (current[keys[i]] === undefined) return
+      if (current[keys[i]] == null) {
+        if (keys[i] === 'fog') {
+          current[keys[i]] = new THREE.Fog(0xcccccc, 1, 100)
+        } else {
+          return
+        }
+      }
       current = current[keys[i]]
     }
     const finalKey = keys[keys.length - 1]

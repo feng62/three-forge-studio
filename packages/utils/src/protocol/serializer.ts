@@ -87,6 +87,22 @@ export class ForgeSerializer {
       helper.parent.add(helper.object);
     }
 
+    // 处理通过 IndexedDB 传入的贴图数据，防止将大量的 Base64 URL 编入 JSON
+    if (nativeJSON.textures && nativeJSON.images) {
+      const dbImageUuids = new Set<string>();
+      for (const tex of nativeJSON.textures) {
+        if (tex.userData && tex.userData.dbId !== undefined) {
+          dbImageUuids.add(tex.image);
+        }
+      }
+      for (const img of nativeJSON.images) {
+        if (dbImageUuids.has(img.uuid)) {
+          // 清空 url 以防庞大的 Data URI 导致 JSON 膨胀
+          img.url = '';
+        }
+      }
+    }
+
     const assets: ForgeAssets = {
       geometries: nativeJSON.geometries || [],
       materials: nativeJSON.materials || [],

@@ -4,8 +4,9 @@ import { AddObjectCommand } from '../../history/AddObjectCommand'
 import { SetMaterialCommand } from '../../history/SetMaterialCommand'
 import { historyManager } from '../../history/HistoryManager'
 import { RaycastConfig } from '../../config/RaycastConfig'
-import { GLTFLoader, FBXLoader } from 'three-stdlib'
+import { GLTFLoader, FBXLoader, RGBELoader, EXRLoader } from 'three-stdlib'
 import ModelWorker from '../../db/modelWorker?worker'
+import { db } from '../../db/db'
 
 export class AssetManager {
   private engine: Engine
@@ -326,7 +327,6 @@ export class AssetManager {
               if (validIntersects.length > 0) {
                 const hit = validIntersects[0]
                 wrapper.position.copy(hit.point)
-                placed = true
               }
             }
 
@@ -339,8 +339,52 @@ export class AssetManager {
         URL.revokeObjectURL(url)
       }
     } catch (err) {
-      console.error(`[AssetManager] Error loading external model from DB:`, err)
+      console.error(`[AssetManager] Failed to load external model:`, err)
+      return null
     }
-    return null
+  }
+
+  /**
+   * 从 IndexedDB 加载贴图数据并转化为 THREE.Texture
+   */
+  public async loadTextureFromDB(dbId: number): Promise<THREE.Texture | null> {
+    try {
+      const asset = await db.assets.get(dbId)
+      if (!asset || !asset.data) return null
+
+      let blob: Blob
+      if (asset.data instanceof Blob) {
+        blob = asset.data
+      } else if (asset.data instanceof ArrayBuffer) {
+        blob = new Blob([asset.data], { type: asset.type })
+      } else {
+        return null
+      }
+
+      const url = URL.createObjectURL(blob)
+      let texture: THREE.Texture
+
+      if (asset.name.toLowerCase().endsWith('.hdr')) {
+        const loader = new RGBELoader()
+        texture = await loader.loadAsync(url)
+        texture.mapping = THREE.EquirectangularReflectionMapping
+      } else if (asset.name.toLowerCase().endsWith('.exr')) {
+        const loader = new EXRLoader()
+        texture = await loader.loadAsync(url)
+        texture.mapping = THREE.EquirectangularReflectionMapping
+      } else {
+        const loader = new THREE.TextureLoader()
+        texture = await loader.loadAsync(url)
+        texture.colorSpace = THREE.SRGBColorSpace
+      }
+
+      URL.revokeObjectURL(url)
+      texture.userData.dbId = dbId
+      texture.name = asset.name
+      return texture
+    } catch (err) {
+      console.error('[AssetManager] Failed to load texture from DB:', err)
+      return null
+    }
   }
 }

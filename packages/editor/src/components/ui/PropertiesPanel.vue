@@ -11,6 +11,9 @@ import Vector3Input from './widgets/Vector3Input.vue'
 import ColorInput from './widgets/ColorInput.vue'
 import BooleanInput from './widgets/BooleanInput.vue'
 import StringInput from './widgets/StringInput.vue'
+import SelectInput from './widgets/SelectInput.vue'
+import TextureInput from './widgets/TextureInput.vue'
+import UserDataEditor from './UserDataEditor.vue'
 
 const engineStore = useEngineStore()
 const selectedObject = ref<THREE.Object3D | null>(null)
@@ -98,6 +101,8 @@ const getWidgetComponent = (type: string) => {
     case 'color': return ColorInput
     case 'boolean': return BooleanInput
     case 'string': return StringInput
+    case 'select': return SelectInput
+    case 'texture': return TextureInput
     default: return StringInput
   }
 }
@@ -131,20 +136,27 @@ const handleFieldInput = (field: PropertyField, val: any) => {
     )
   } else if (field.type === 'vector3' && val && typeof val.x === 'number') {
     finalVal = new THREE.Vector3(val.x, val.y, val.z)
+  } else if (field.type === 'color' && typeof val === 'number') {
+    finalVal = new THREE.Color(val)
   }
 
   // 实时修改对象本身，但不记入历史
   const keys = field.path.split('.')
   let current = selectedObject.value as any
   for (let i = 0; i < keys.length - 1; i++) {
+    if (current[keys[i]] == null) {
+      if (keys[i] === 'fog') {
+        current[keys[i]] = new THREE.Fog(0xcccccc, 1, 100)
+      } else {
+        break
+      }
+    }
     current = current[keys[i]]
   }
   const finalKey = keys[keys.length - 1]
 
   if (current[finalKey] && typeof current[finalKey].copy === 'function' && finalVal && typeof finalVal.copy === 'function') {
     current[finalKey].copy(finalVal)
-  } else if (current[finalKey] && typeof current[finalKey].setHex === 'function' && typeof finalVal === 'number') {
-    current[finalKey].setHex(finalVal)
   } else {
     current[finalKey] = finalVal
   }
@@ -171,6 +183,8 @@ const handleFieldChange = (field: PropertyField, val: any) => {
     )
   } else if (field.type === 'vector3' && val && typeof val.x === 'number') {
     finalVal = new THREE.Vector3(val.x, val.y, val.z)
+  } else if (field.type === 'color' && typeof val === 'number') {
+    finalVal = new THREE.Color(val)
   }
 
   // 如果没有改变，不记录
