@@ -65,19 +65,21 @@ onUnmounted(() => {
         <Viewport class="flex-1" />
         
         <!-- Bottom Panels Area -->
-        <div 
-          v-if="pluginsWithBottomPanel.length > 0"
-          class="flex-shrink-0 flex flex-col bg-panel border-t border-border z-10 max-h-[40vh] overflow-y-auto custom-scrollbar"
-        >
-          <component 
-            v-for="plugin in pluginsWithBottomPanel" 
-            :key="plugin.name"
-            :is="plugin.ui!.bottomPanel" 
-            :engine="engineStore.engine"
-            :sceneGraphVersion="engineStore.sceneGraphVersion"
-            @save="projectStore.saveProject()"
-          />
-        </div>
+        <transition name="slide-up">
+          <div 
+            v-if="pluginsWithBottomPanel.length > 0"
+            class="flex-shrink-0 flex flex-col bg-panel border-t border-border z-10 max-h-[40vh] overflow-y-auto custom-scrollbar"
+          >
+            <component 
+              v-for="plugin in pluginsWithBottomPanel" 
+              :key="plugin.name"
+              :is="plugin.ui!.bottomPanel" 
+              :engine="engineStore.engine"
+              :sceneGraphVersion="engineStore.sceneGraphVersion"
+              @save="projectStore.saveProject()"
+            />
+          </div>
+        </transition>
       </div>
       <RightPanel />
     </div>
@@ -86,4 +88,14 @@ onUnmounted(() => {
 
 <style>
 /* Base overrides if needed, mostly handled by tailwind */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
+}
 </style>
