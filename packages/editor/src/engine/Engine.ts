@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { WebGPURenderer } from 'three/webgpu'
 import { OrbitControls } from 'three-stdlib'
 import { RectAreaLightUniformsLib } from 'three-stdlib'
 import gsap from 'gsap'
@@ -11,7 +12,7 @@ import { TransformManager } from './managers/TransformManager'
 export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { type: 'objectTransformChanged', object: THREE.Object3D } }> {
   public scene: THREE.Scene
   public camera: THREE.PerspectiveCamera
-  public renderer: THREE.WebGLRenderer
+  public renderer: WebGPURenderer
   public orbitControls!: OrbitControls
 
   // Managers
@@ -21,7 +22,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
   public transformManager: TransformManager
 
   public container: HTMLElement | null = null
-  private animationFrameId: number | null = null
+  private isAnimating: boolean = false
   private clock: THREE.Clock
   private resizeObserver: ResizeObserver | null = null
 
@@ -45,7 +46,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
     this.camera.position.set(5, 5, 5)
     this.camera.lookAt(0, 0, 0)
     
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    this.renderer = new WebGPURenderer({ antialias: true, alpha: true })
     this.renderer.setPixelRatio(window.devicePixelRatio)
 
     this.clock = new THREE.Clock()
@@ -115,37 +116,36 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
   }
 
   /**
-   * 开启渲染循环 (requestAnimationFrame)
+   * 开启渲染循环
    */
   public start() {
-    if (this.animationFrameId !== null) return
+    if (this.isAnimating) return
+    this.isAnimating = true
     this.clock.start()
-    this.animate()
+    this.renderer.setAnimationLoop(this.animate)
   }
 
-  private animate = () => {
-    this.animationFrameId = requestAnimationFrame(this.animate)
-
+  private animate = async () => {
     // Update helpers
     this.selectionManager.updateHelpers()
 
-    this.render()
+    await this.render()
   }
 
   /**
    * 停止渲染循环
    */
   public stop() {
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId)
-      this.animationFrameId = null
+    if (this.isAnimating) {
+      this.renderer.setAnimationLoop(null)
+      this.isAnimating = false
     }
   }
 
   /**
    * 每一帧调用的渲染函数
    */
-  public render() {
+  public async render() {
     // 自动适配容器尺寸防闪烁
     if (this.container) {
       const width = this.container.clientWidth
@@ -172,7 +172,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
     if (this.orbitControls) {
       this.orbitControls.update()
     }
-    this.renderer.render(this.scene, this.camera)
+    await this.renderer.renderAsync(this.scene, this.camera)
   }
 
   // =========================================================

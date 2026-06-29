@@ -18,7 +18,7 @@ catalog:
   hotkeys-js: ^4.0.4
   pinia: ^3.0.4
   tailwindcss: ^4.3.1
-  three: ^0.170.0
+  three: ^0.185.0
   three-mesh-bvh: ^0.9.10
   three-stdlib: ^2.36.1
   three-viewport-gizmo: ^2.2.0

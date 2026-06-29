@@ -49,8 +49,8 @@ catalogs:
       specifier: ^4.3.1
       version: 4.3.1
     three:
-      specifier: ^0.170.0
-      version: 0.170.0
+      specifier: ^0.185.0
+      version: 0.185.0
     three-mesh-bvh:
       specifier: ^0.9.10
       version: 0.9.10
@@ -107,7 +107,7 @@ importers:
         version: 4.3.1
       three:
         specifier: 'catalog:'
-        version: 0.170.0
+        version: 0.185.0
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -218,16 +218,16 @@ importers:
         version: 3.0.4(typescript@6.0.3)(vue@3.5.39(typescript@6.0.3))
       three:
         specifier: 'catalog:'
-        version: 0.170.0
+        version: 0.185.0
       three-mesh-bvh:
         specifier: 'catalog:'
-        version: 0.9.10(three@0.170.0)
+        version: 0.9.10(three@0.185.0)
       three-stdlib:
         specifier: 'catalog:'
-        version: 2.36.1(three@0.170.0)
+        version: 2.36.1(three@0.185.0)
       three-viewport-gizmo:
         specifier: 'catalog:'
-        version: 2.2.0(three@0.170.0)
+        version: 2.2.0(three@0.185.0)
       vue:
         specifier: 'catalog:'
         version: 3.5.39(typescript@6.0.3)
@@ -267,13 +267,13 @@ importers:
         version: 3.15.0
       three:
         specifier: 'catalog:'
-        version: 0.170.0
+        version: 0.185.0
 
   packages/types:
     dependencies:
       three:
         specifier: 'catalog:'
-        version: 0.170.0
+        version: 0.185.0
     devDependencies:
       vue:
         specifier: 'catalog:'
@@ -286,7 +286,7 @@ importers:
         version: link:../types
       three:
         specifier: 'catalog:'
-        version: 0.170.0
+        version: 0.185.0
 
 packages:
 
@@ -1828,9 +1828,6 @@ packages:
     resolution: {integrity: sha512-Jo9Liur1rUmdKk75FZumLU/+hbF+RtJHi1qsKZpntjKlCYScK6tjbYoqvJ9M+IJphrlQJF5oReFW7Sambh0N4Q==}
     peerDependencies:
       three: '>=0.162.0 <1.0.0'
-
-  three@0.170.0:
-    resolution: {integrity: sha512-FQK+LEpYc0fBD+J8g6oSEyyNzjp+Q7Ks1C568WWaoMRLW+TkNNWmenWeGgJjV105Gd+p/2ql1ZcjYvNiPZBhuQ==}
 
   three@0.185.0:
     resolution: {integrity: sha512-+yRrcRO2iZa8uzvNNl0d7cL4huhgKgBvVJ0njcTe8xFqZ6DMAFZdCKDP91SEAuj25bNAj7k1QQdf+srZywVK6w==}
@@ -3536,19 +3533,9 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  three-mesh-bvh@0.9.10(three@0.170.0):
+  three-mesh-bvh@0.9.10(three@0.185.0):
     dependencies:
-      three: 0.170.0
-
-  three-stdlib@2.36.1(three@0.170.0):
-    dependencies:
-      '@types/draco3d': 1.4.10
-      '@types/offscreencanvas': 2019.7.3
-      '@types/webxr': 0.5.24
-      draco3d: 1.5.7
-      fflate: 0.6.10
-      potpack: 1.0.2
-      three: 0.170.0
+      three: 0.185.0
 
   three-stdlib@2.36.1(three@0.185.0):
     dependencies:
@@ -3560,11 +3547,9 @@ snapshots:
       potpack: 1.0.2
       three: 0.185.0
 
-  three-viewport-gizmo@2.2.0(three@0.170.0):
+  three-viewport-gizmo@2.2.0(three@0.185.0):
     dependencies:
-      three: 0.170.0
-
-  three@0.170.0: {}
+      three: 0.185.0
 
   three@0.185.0: {}
 
