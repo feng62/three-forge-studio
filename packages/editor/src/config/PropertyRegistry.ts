@@ -8,6 +8,7 @@ export interface PropertyField {
     max?: number
     step?: number
     options?: { label: string; value: any }[] // for select type
+    accept?: string // for file/texture input
   }
 }
 

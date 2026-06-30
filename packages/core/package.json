@@ -15,6 +15,9 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@forge/types": "workspace:*",
+    "@forge/utils": "workspace:*",
+    "@forge/plugins": "workspace:*",
     "three": "catalog:",
     "three-stdlib": "catalog:"
   },

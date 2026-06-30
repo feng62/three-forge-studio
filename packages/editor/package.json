@@ -27,6 +27,7 @@
     "element-plus": "catalog:",
     "gsap": "catalog:",
     "hotkeys-js": "catalog:",
+    "jszip": "^3.10.1",
     "pinia": "catalog:",
     "three": "catalog:",
     "three-mesh-bvh": "catalog:",

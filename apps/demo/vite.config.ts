@@ -7,12 +7,13 @@ import path from 'path';
 export default defineAppConfig({
   plugins: [vue(), tailwindcss()],
   resolve: {
-    alias: {
-      '@forge/editor': path.resolve(__dirname, '../../packages/editor/src/index.ts'),
-      '@forge/core': path.resolve(__dirname, '../../packages/core/src/index.ts')
-    }
+    alias: [
+      { find: '@forge/editor', replacement: path.resolve(__dirname, '../../packages/editor/src/index.ts') },
+      { find: '@forge/core', replacement: path.resolve(__dirname, '../../packages/core/src/index.ts') },
+      { find: '@forge/plugins', replacement: path.resolve(__dirname, '../../packages/plugins/src/index.ts') }
+    ]
   },
   server: {
     port: 3000
   }
-}, ['core', 'editor']); // Watch these packages
+}, ['core', 'editor', 'plugins']); // Watch these packages

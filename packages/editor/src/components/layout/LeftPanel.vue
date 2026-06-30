@@ -11,8 +11,7 @@ import {
   PhDrop,
   PhDiamond,
   PhUploadSimple,
-  PhTrash,
-  PhImage
+  PhTrash
 } from '@phosphor-icons/vue';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useEngineStore } from '../../stores/engineStore';
@@ -22,6 +21,8 @@ import { useProjectStore } from '../../stores/projectStore';
 import { useUiStore } from '../../stores/uiStore';
 import { uiPlugins } from '../../plugins';
 import { storeToRefs } from 'pinia';
+import * as THREE from 'three';
+import TexturePreview from '../ui/widgets/TexturePreview.vue';
 
 const settingsStore = useSettingsStore();
 const engineStore = useEngineStore();
@@ -38,9 +39,9 @@ const allExternalAssets = ref<any[]>([]);
 let dbSub: any;
 
 onMounted(() => {
-  dbSub = liveQuery(() => db.models.toArray()).subscribe({
-    next: (models) => {
-      allExternalAssets.value = models;
+  dbSub = liveQuery(() => db.assets.toArray()).subscribe({
+    next: (assets) => {
+      allExternalAssets.value = assets;
     },
     error: (err) => console.error(err)
   });
@@ -73,7 +74,8 @@ const onFileChange = async (e: Event) => {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   const buffer = await file.arrayBuffer();
   
-  await db.models.add({
+  await db.assets.add({
+    id: THREE.MathUtils.generateUUID(),
     name: file.name.replace(/\.[^/.]+$/, ""),
     type: ext,
     size: file.size,
@@ -93,7 +95,8 @@ const onTextureChange = async (e: Event) => {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   const buffer = await file.arrayBuffer();
   
-  await db.models.add({
+  await db.assets.add({
+    id: THREE.MathUtils.generateUUID(),
     name: file.name.replace(/\.[^/.]+$/, ""),
     type: ext,
     size: file.size,
@@ -105,20 +108,10 @@ const onTextureChange = async (e: Event) => {
   input.value = '';
 };
 
-const deleteExternalModel = async (id: number) => {
-  await db.models.delete(id);
+const deleteExternalModel = async (id: string) => {
+  await db.assets.delete(id);
 };
 
-const getTexturePreview = (texture: any) => {
-  if (texture._previewUrl) return texture._previewUrl;
-  if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(texture.type)) {
-    const blob = new Blob([texture.data]);
-    const url = URL.createObjectURL(blob);
-    texture._previewUrl = url;
-    return url;
-  }
-  return null;
-};
 
 const builtInModels = [
   { type: 'Box', label: '立方体', icon: PhCube },
@@ -143,8 +136,6 @@ const materials = [
   { type: 'Material_Phong', label: '冯氏材质', icon: PhPalette },
   { type: 'Material_Metal', label: '金属材质', icon: PhDiamond },
   { type: 'Material_Glass', label: '玻璃材质', icon: PhDrop },
-  { type: 'Material_Depth', label: '深度材质', icon: PhPalette },
-  { type: 'Material_Normal', label: '法线材质', icon: PhPalette },
   { type: 'Material_Wireframe', label: '线框材质', icon: PhPalette },
 ];
 
@@ -260,8 +251,7 @@ const handleTextureDragStart = (e: DragEvent, texture: any) => {
                     <PhTrash :size="14" />
                   </button>
                   <div class="w-full h-16 flex items-center justify-center bg-black/20 rounded overflow-hidden relative">
-                    <img v-if="getTexturePreview(texture)" :src="getTexturePreview(texture)" class="w-full h-full object-cover" />
-                    <PhImage v-else :size="24" weight="duotone" class="text-text-muted group-hover:text-primary transition-colors" />
+                    <TexturePreview :asset="texture" />
                   </div>
                   <span class="text-[11px] truncate w-full text-center mt-1" :title="texture.name">{{ texture.name }}</span>
                 </div>

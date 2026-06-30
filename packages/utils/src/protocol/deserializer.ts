@@ -51,6 +51,15 @@ export class ForgeDeserializer {
       object: json.scene // 我们的 ForgeSceneNode 结构在设计上就是为了完美兼容原生 JSON 的 Object 层级
     };
 
+    // 修复旧数据或被压缩过的贴图：将 url 为空的 image 替换为 1x1 透明像素，防止 ObjectLoader 崩溃
+    if (nativeJSON.images) {
+      for (const img of nativeJSON.images) {
+        if (!img.url || img.url === '') {
+          img.url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+        }
+      }
+    }
+
     const loader = new ObjectLoader();
     let rootObject: Object3D;
     try {

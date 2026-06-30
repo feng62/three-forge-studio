@@ -5,7 +5,6 @@ import { useEngineStore } from './engineStore';
 import { ForgeSerializer, ForgeDeserializer } from '@forge/utils';
 import { CoreExternalModelPlugin } from '../plugins/ExternalModelPlugin';
 import { uiPlugins } from '../plugins';
-import * as THREE from 'three';
 
 export const useProjectStore = defineStore('project', () => {
   const currentProject = ref<Project | null>(null);
@@ -88,10 +87,18 @@ export const useProjectStore = defineStore('project', () => {
           new CoreExternalModelPlugin(engineStore.engine.assetManager),
           ...serializers
         ]);
+        
+        const assetManager = engineStore.engine.assetManager;
+        assetManager.projectAssets.clear();
+        if (dataObj.assets && dataObj.assets.registry) {
+          for (const item of dataObj.assets.registry) {
+            assetManager.registerAsset(item.uuid, item.url || '', item.type, item.format || '', item.name || '');
+          }
+        }
+
         const report = await deserializer.deserialize(dataObj);
         if (report.scene) {
           const scene = report.scene as any;
-          const assetManager = engineStore.engine.assetManager;
 
           // 重新加载具有 dbId 的贴图并就地更新
           const reloadTexture = async (oldTex: any) => {
@@ -218,7 +225,7 @@ export const useProjectStore = defineStore('project', () => {
 
       const serializers = uiPlugins.map(p => p.serializer).filter(Boolean) as any[];
       const serializer = new ForgeSerializer(serializers);
-      const resultJSON = serializer.serialize(engineStore.engine.scene);
+      const resultJSON = serializer.serialize(engineStore.engine.scene, currentProject.value?.name, engineStore.engine.assetManager.projectAssets);
       data = JSON.stringify(resultJSON);
     } catch (err) {
       console.error('Failed to serialize scene:', err);

@@ -10,9 +10,13 @@
   "dependencies": {
     "@forge/core": "workspace:*",
     "@forge/editor": "workspace:*",
+    "@forge/types": "workspace:*",
     "element-plus": "catalog:",
     "pinia": "catalog:",
-    "vue": "catalog:"
+    "three": "catalog:",
+    "three-stdlib": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "catalog:",

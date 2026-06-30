@@ -5,7 +5,7 @@ import {
   DArrowLeft, DArrowRight, 
   Plus, Delete, Refresh
 } from '@element-plus/icons-vue';
-import type { ForgeEngine } from '@forge/core';
+import type { Engine as ForgeEngine } from '../../../../editor/src/engine/Engine';
 
 const props = defineProps<{
   engine: ForgeEngine | null;
@@ -15,7 +15,7 @@ const props = defineProps<{
 const isPlaying = ref(false);
 const currentTime = ref(0);
 const duration = ref(10); // 默认总时长 10 秒
-const timeScale = ref(1); // 时间缩放比例 (缩放滑动时间轴)
+
 
 // 模拟的时间轴刻度生成
 const timeTicks = computed(() => {

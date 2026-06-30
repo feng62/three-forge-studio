@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { PointLightHelper, SpotLightHelper, DirectionalLightHelper, PointLight, SpotLight, DirectionalLight } from 'three/webgpu'
 import { Engine } from '../Engine'
 import { RaycastConfig } from '../../config/RaycastConfig'
 import { RectAreaLightHelper } from 'three-stdlib'
@@ -105,7 +106,7 @@ export class SelectionManager {
           if (hitObj.name) {
             // Check if any parent has isExternalModel before breaking just for name
             let hasExternalModelParent = false;
-            let p = hitObj.parent;
+            let p: THREE.Object3D | null = hitObj.parent;
             while (p && p !== this.engine.scene) {
               if (p.userData && p.userData.isExternalModel) {
                 hasExternalModelParent = true;
@@ -161,13 +162,13 @@ export class SelectionManager {
       if ((obj as any).isLight) {
         switch (obj.type) {
           case 'PointLight':
-            this.activeLightHelper = new THREE.PointLightHelper(obj as THREE.PointLight, 0.5)
+            this.activeLightHelper = new PointLightHelper(obj as PointLight, 0.5)
             break
           case 'SpotLight':
-            this.activeLightHelper = new THREE.SpotLightHelper(obj as THREE.SpotLight)
+            this.activeLightHelper = new SpotLightHelper(obj as SpotLight)
             break
           case 'DirectionalLight':
-            this.activeLightHelper = new THREE.DirectionalLightHelper(obj as THREE.DirectionalLight, 1)
+            this.activeLightHelper = new DirectionalLightHelper(obj as DirectionalLight, 1)
             break
           case 'RectAreaLight':
             this.activeLightHelper = new RectAreaLightHelper(obj as any)

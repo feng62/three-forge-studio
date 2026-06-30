@@ -1,16 +1,27 @@
 import * as THREE from 'three'
+import { AmbientLight, PointLight, SpotLight, DirectionalLight, RectAreaLight } from 'three/webgpu'
 import { Engine } from '../Engine'
 import { AddObjectCommand } from '../../history/AddObjectCommand'
 import { SetMaterialCommand } from '../../history/SetMaterialCommand'
 import { historyManager } from '../../history/HistoryManager'
 import { RaycastConfig } from '../../config/RaycastConfig'
-import { GLTFLoader, FBXLoader, RGBELoader, EXRLoader } from 'three-stdlib'
+import { GLTFLoader, FBXLoader, EXRLoader } from 'three-stdlib'
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js'
 import ModelWorker from '../../db/modelWorker?worker'
 import { db } from '../../db/db'
+
+export interface ForgeAssetRegistryItem {
+  uuid: string;
+  url: string;
+  type: 'model' | 'texture' | 'image';
+  format: string;
+  name: string;
+}
 
 export class AssetManager {
   private engine: Engine
   private worker: Worker
+  public projectAssets = new Map<string, ForgeAssetRegistryItem>()
 
   constructor(engine: Engine) {
     this.engine = engine
@@ -69,28 +80,28 @@ export class AssetManager {
         yOffset = 0.5
         break
       case 'AmbientLight':
-        obj = new THREE.AmbientLight(0xffffff, 0.5)
+        obj = new AmbientLight(0xffffff, 0.5)
         obj.name = 'AmbientLight'
         yOffset = 0
         break
       case 'PointLight':
-        obj = new THREE.PointLight(0xffffff, 1, 100)
+        obj = new PointLight(0xffffff, 1, 100)
         obj.name = 'PointLight'
         yOffset = 2
         break
       case 'SpotLight':
-        obj = new THREE.SpotLight(0xffffff, 1)
+        obj = new SpotLight(0xffffff, 1)
         obj.name = 'SpotLight';
-        (obj as THREE.SpotLight).angle = Math.PI / 6
+        (obj as SpotLight).angle = Math.PI / 6
         yOffset = 5
         break
       case 'DirectionalLight':
-        obj = new THREE.DirectionalLight(0xffffff, 1)
+        obj = new DirectionalLight(0xffffff, 1)
         obj.name = 'DirectionalLight'
         yOffset = 5
         break
       case 'RectAreaLight':
-        obj = new THREE.RectAreaLight(0xffffff, 5, 2, 2)
+        obj = new RectAreaLight(0xffffff, 5, 2, 2)
         obj.name = 'RectAreaLight'
         obj.lookAt(0, 0, 0)
         yOffset = 3
@@ -222,14 +233,7 @@ export class AssetManager {
           })
           newMaterial.name = '玻璃材质'
           break
-        case 'Material_Depth':
-          newMaterial = new THREE.MeshDepthMaterial()
-          newMaterial.name = '深度材质'
-          break
-        case 'Material_Normal':
-          newMaterial = new THREE.MeshNormalMaterial()
-          newMaterial.name = '法线材质'
-          break
+
         case 'Material_Wireframe':
           newMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
           newMaterial.name = '线框材质'
@@ -248,13 +252,23 @@ export class AssetManager {
   }
 
   /**
+   * 注册资产到当前项目的注册表中
+   */
+  public registerAsset(uuid: string, url: string, type: 'model' | 'texture' | 'image', format: string, name: string) {
+    if (!this.projectAssets.has(uuid)) {
+      this.projectAssets.set(uuid, { uuid, url, type, format, name })
+      console.log(`[AssetManager] Registered asset: ${name} (${uuid})`)
+    }
+  }
+
+  /**
    * 从 IndexedDB 通过 Web Worker 加载外部模型并加入场景
-   * @param {number} id - 模型在 DB 中的 ID
+   * @param {string} id - 模型在 DB 中的 ID
    * @param {number} [clientX] - 落点 X
    * @param {number} [clientY] - 落点 Y
    * @param {THREE.Object3D} [attachTo] - 可选，直接挂载到指定的节点而不是主场景
    */
-  public async loadExternalModelFromDB(id: number, clientX?: number, clientY?: number, attachTo?: THREE.Object3D): Promise<THREE.Object3D | null> {
+  public async loadExternalModelFromDB(id: string, clientX?: number, clientY?: number, attachTo?: THREE.Object3D): Promise<THREE.Object3D | null> {
     try {
       console.log(`[AssetManager] Requesting model ${id} from Worker...`)
       
@@ -278,6 +292,8 @@ export class AssetManager {
       const { data: buffer, ext, name } = data
       const blob = new Blob([buffer])
       const url = URL.createObjectURL(blob)
+      
+      this.registerAsset(id, '', 'model', ext, name)
       
       try {
         let loadedObject: THREE.Object3D | null = null
@@ -338,6 +354,7 @@ export class AssetManager {
       } finally {
         URL.revokeObjectURL(url)
       }
+      return null
     } catch (err) {
       console.error(`[AssetManager] Failed to load external model:`, err)
       return null
@@ -347,10 +364,12 @@ export class AssetManager {
   /**
    * 从 IndexedDB 加载贴图数据并转化为 THREE.Texture
    */
-  public async loadTextureFromDB(dbId: number): Promise<THREE.Texture | null> {
+  public async loadTextureFromDB(dbId: string): Promise<THREE.Texture | null> {
     try {
       const asset = await db.assets.get(dbId)
       if (!asset || !asset.data) return null
+      
+      this.registerAsset(dbId, '', 'texture', asset.type, asset.name)
 
       let blob: Blob
       if (asset.data instanceof Blob) {
@@ -364,11 +383,13 @@ export class AssetManager {
       const url = URL.createObjectURL(blob)
       let texture: THREE.Texture
 
-      if (asset.name.toLowerCase().endsWith('.hdr')) {
-        const loader = new RGBELoader()
+      const ext = (asset.type || '').toLowerCase()
+      
+      if (ext === 'hdr') {
+        const loader = new HDRLoader()
         texture = await loader.loadAsync(url)
         texture.mapping = THREE.EquirectangularReflectionMapping
-      } else if (asset.name.toLowerCase().endsWith('.exr')) {
+      } else if (ext === 'exr') {
         const loader = new EXRLoader()
         texture = await loader.loadAsync(url)
         texture.mapping = THREE.EquirectangularReflectionMapping
@@ -378,7 +399,13 @@ export class AssetManager {
         texture.colorSpace = THREE.SRGBColorSpace
       }
 
-      URL.revokeObjectURL(url)
+      if (ext !== 'hdr' && ext !== 'exr') {
+        texture.userData.previewUrl = url
+      } else {
+        URL.revokeObjectURL(url)
+        texture.userData.previewUrl = asset.preview || null
+      }
+      
       texture.userData.dbId = dbId
       texture.name = asset.name
       return texture

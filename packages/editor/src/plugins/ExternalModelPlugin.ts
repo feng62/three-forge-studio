@@ -1,15 +1,16 @@
-import { Object3D, Mesh } from 'three';
-import { ForgePlugin } from '@forge/types';
-import { resolvePath } from '@forge/utils';
+import { Object3D, Mesh, Material } from 'three';
 import { AssetManager } from '../engine/managers/AssetManager';
+import { BaseExternalModelPlugin } from '@forge/plugins';
 
 /**
  * 核心外部模型插件：负责解析反序列化过程中的外部模型节点
  */
-export class CoreExternalModelPlugin implements ForgePlugin {
+export class CoreExternalModelPlugin extends BaseExternalModelPlugin {
   name = 'core_external_model';
   
-  constructor(private assetManager: AssetManager) {}
+  constructor(private assetManager: AssetManager) {
+    super();
+  }
 
   public async deserializeNode(data: any, node: Object3D): Promise<void> {
     if (data && data.id) {
@@ -33,52 +34,11 @@ export class CoreExternalModelPlugin implements ForgePlugin {
             dummyHolder = current.getObjectByName('__ForgeDummy__') as Mesh;
           }
 
-          const dummyMaterials = dummyHolder && Array.isArray(dummyHolder.material) ? dummyHolder.material : [];
-
-          for (const path in data.modifications) {
-            // path 是相对于 node (外部模型 wrapper) 计算的，
-            // 序列化时由于 wrapper 只有这一个加载的模型子节点，其索引必然是 0。
-            // 反序列化时 ObjectLoader 生成的 wrapper 也没有子节点，
-            // assetManager 加载的真实模型挂载后同样是索引 0。
-            const child = resolvePath(node, path);
-            if (child) {
-              const mod = data.modifications[path];
-              // 还原变换
-              if (mod.matrix) {
-                child.matrix.fromArray(mod.matrix);
-                child.matrix.decompose(child.position, child.quaternion, child.scale);
-                child.userData._externalModifications = child.userData._externalModifications || {};
-                child.userData._externalModifications.transform = true;
-              } else if (mod.transform) {
-                child.position.fromArray(mod.transform.position);
-                child.rotation.fromArray(mod.transform.rotation);
-                child.scale.fromArray(mod.transform.scale);
-                // 标记一下，防止再次反序列化时漏掉
-                child.userData._externalModifications = child.userData._externalModifications || {};
-                child.userData._externalModifications.transform = true;
-              }
-              // 还原材质
-              if (mod.material) {
-                const isArray = Array.isArray(mod.material);
-                const uuids = isArray ? mod.material : [mod.material];
-                const matchedMaterials = uuids.map((uuid: string) => dummyMaterials.find(m => m.uuid === uuid)).filter(Boolean);
-                
-                if (matchedMaterials.length > 0) {
-                  (child as any).material = isArray ? matchedMaterials : matchedMaterials[0];
-                  child.userData._externalModifications = child.userData._externalModifications || {};
-                  child.userData._externalModifications.material = true;
-                } else {
-                  console.warn(`[CoreExternalModelPlugin] Material ${mod.material} not found for path ${path}`);
-                }
-              }
-              // 还原 userData
-              if (mod.userData) {
-                Object.assign(child.userData, mod.userData);
-                child.userData._externalModifications = child.userData._externalModifications || {};
-                child.userData._externalModifications.userData = true;
-              }
-            }
-          }
+          const dummyMaterials = dummyHolder && Array.isArray(dummyHolder.material) 
+            ? (dummyHolder.material as Material[]) 
+            : [];
+            
+          this.applyExternalModifications(node, data.modifications, dummyMaterials, true);
         }
       } catch (err) {
         console.error(`[CoreExternalModelPlugin] Failed to restore external model: ${data.id}`, err);

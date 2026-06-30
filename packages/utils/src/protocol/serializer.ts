@@ -15,9 +15,10 @@ export class ForgeSerializer {
    * 将 Three.js 的 Scene 序列化为 ForgeSceneJSON 协议对象。
    * @param scene 根场景对象
    * @param projectName 项目名称
+   * @param projectAssets 可选的当前项目统一资产注册表
    * @returns 序列化后的 JSON 数据
    */
-  public serialize(scene: Object3D, projectName: string = 'Untitled Project'): ForgeSceneJSON {
+  public serialize(scene: Object3D, projectName: string = 'Untitled Project', projectAssets?: Map<string, any>): ForgeSceneJSON {
     const externalModels: { parent: Object3D; object: Object3D }[] = [];
     const helpers: { parent: Object3D; object: Object3D }[] = [];
     const modifiedMaterials = new Set<THREE.Material>();
@@ -74,10 +75,7 @@ export class ForgeSerializer {
     // 1. 利用 Three.js 原生的序列化机制，高效提取原生资产
     const nativeJSON = scene.toJSON() as any;
 
-    // 清理假节点，让其不干扰后续逻辑
-    if (dummyHolder) {
-      scene.remove(dummyHolder);
-    }
+
 
     // 恢复外部模型节点和辅助工具
     for (const em of externalModels) {
@@ -97,8 +95,10 @@ export class ForgeSerializer {
       }
       for (const img of nativeJSON.images) {
         if (dbImageUuids.has(img.uuid)) {
-          // 清空 url 以防庞大的 Data URI 导致 JSON 膨胀
-          img.url = '';
+          // 将 url 替换为一个极小的 1x1 透明 PNG data URI，防止 JSON 膨胀，
+          // 同时保证 ObjectLoader.parseAsync() 期间 createImageBitmap() 能够成功解析而不报错。
+          // 后续会有 _applyDeserializedScene 从 IndexedDB 加载真实的贴图并进行就地替换。
+          img.url = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
         }
       }
     }
@@ -109,6 +109,7 @@ export class ForgeSerializer {
       textures: nativeJSON.textures || [],
       images: nativeJSON.images || [], // Three.js 通常将图片和贴图一并提取
       models: [], // 自定义的外部模型资产引用，后续可由插件或外部逻辑填充
+      registry: projectAssets ? Array.from(projectAssets.values()) : [],
     };
 
     // 2. 解析全局维度的根插件数据
@@ -131,6 +132,11 @@ export class ForgeSerializer {
 
     // 3. 递归遍历并构建 Forge 的场景树结构
     const rootNode = this.serializeNode(scene);
+
+    // 清理假节点，让其不干扰后续逻辑
+    if (dummyHolder) {
+      scene.remove(dummyHolder);
+    }
 
     // 组装最终完整的 JSON 协议
     const json: ForgeSceneJSON = {

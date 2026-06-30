@@ -150,7 +150,7 @@ const playViewpoint = (vp: Viewpoint) => {
         暂无视角，点击添加当前视角
       </div>
 
-      <div v-for="(vp, index) in viewpoints" :key="vp.id" 
+      <div v-for="vp in viewpoints" :key="vp.id" 
            class="bg-bg-base p-3 rounded border flex flex-col gap-3 transition-colors"
            :class="currentViewpointId === vp.id ? 'border-accent' : 'border-border'">
         

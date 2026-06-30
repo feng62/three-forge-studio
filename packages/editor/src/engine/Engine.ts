@@ -23,8 +23,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
 
   public container: HTMLElement | null = null
   private isAnimating: boolean = false
-  private clock: THREE.Clock
-  private resizeObserver: ResizeObserver | null = null
+  private clock: THREE.Timer
 
   // State
   public selectedObjectUuid: string | null = null
@@ -49,7 +48,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
     this.renderer = new WebGPURenderer({ antialias: true, alpha: true })
     this.renderer.setPixelRatio(window.devicePixelRatio)
 
-    this.clock = new THREE.Clock()
+    this.clock = new THREE.Timer()
 
     // Instantiate Managers
     this.sceneManager = new SceneManager(this)
@@ -66,7 +65,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
    * 将引擎渲染器挂载到指定的 HTML 容器中
    * @param {HTMLElement} container - 要挂载的父容器
    */
-  public mount(container: HTMLElement) {
+  public async mount(container: HTMLElement) {
     if (this.container) {
       console.warn('Engine is already mounted.')
       return
@@ -82,6 +81,9 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
     // Mount managers
     this.selectionManager.mount()
     this.transformManager.mount()
+
+    // 初始化 WebGPU
+    await this.renderer.init()
 
     // 移除 ResizeObserver，在 render 循环中进行自适应，以杜绝动画时的闪烁
     this.start()
@@ -121,15 +123,15 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
   public start() {
     if (this.isAnimating) return
     this.isAnimating = true
-    this.clock.start()
     this.renderer.setAnimationLoop(this.animate)
   }
 
-  private animate = async () => {
+  private animate = () => {
+    this.clock.update()
     // Update helpers
     this.selectionManager.updateHelpers()
 
-    await this.render()
+    this.render()
   }
 
   /**
@@ -145,7 +147,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
   /**
    * 每一帧调用的渲染函数
    */
-  public async render() {
+  public render() {
     // 自动适配容器尺寸防闪烁
     if (this.container) {
       const width = this.container.clientWidth
@@ -172,7 +174,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
     if (this.orbitControls) {
       this.orbitControls.update()
     }
-    await this.renderer.renderAsync(this.scene, this.camera)
+    this.renderer.render(this.scene, this.camera)
   }
 
   // =========================================================

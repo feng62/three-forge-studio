@@ -16,13 +16,15 @@ PropertyRegistry.register(
           id: 'scene.background.texture',
           label: '背景贴图',
           type: 'texture',
-          path: 'background'
+          path: 'background',
+          options: { accept: 'image/*' }
         },
         {
           id: 'scene.environment',
           label: '环境贴图 (HDR)',
           type: 'texture',
-          path: 'environment'
+          path: 'environment',
+          options: { accept: '.hdr,.exr' }
         }
       ]
     },

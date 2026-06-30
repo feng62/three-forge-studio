@@ -5,7 +5,7 @@ self.onmessage = async (e: MessageEvent) => {
   
   if (type === 'LOAD_MODEL') {
     try {
-      const model = await db.models.get(id);
+      const model = await db.assets.get(id);
       if (model && model.data) {
         // Transfer the ArrayBuffer back to the main thread (zero-copy)
         self.postMessage({ 

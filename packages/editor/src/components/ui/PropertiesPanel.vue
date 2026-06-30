@@ -152,7 +152,7 @@ const handleFieldInput = (field: PropertyField, val: any) => {
     finalVal = new THREE.Color(val)
   } else if (field.path === 'fog' && field.type === 'boolean') {
     if (val) {
-      finalVal = selectedObject.value.fog || new THREE.Fog(
+      finalVal = (selectedObject.value as THREE.Scene).fog || new THREE.Fog(
         localState.value['scene.fog.color'] ?? 0xcccccc,
         localState.value['scene.fog.near'] ?? 1,
         localState.value['scene.fog.far'] ?? 100
@@ -185,7 +185,7 @@ const handleFieldInput = (field: PropertyField, val: any) => {
   }
   const finalKey = keys[keys.length - 1]
 
-  if (current[finalKey] && typeof current[finalKey].copy === 'function' && finalVal && typeof finalVal.copy === 'function') {
+  if (current[finalKey] && typeof current[finalKey].copy === 'function' && finalVal && typeof finalVal.copy === 'function' && current[finalKey].constructor.name === finalVal.constructor.name) {
     current[finalKey].copy(finalVal)
   } else {
     current[finalKey] = finalVal
@@ -217,7 +217,7 @@ const handleFieldChange = (field: PropertyField, val: any) => {
     finalVal = new THREE.Color(val)
   } else if (field.path === 'fog' && field.type === 'boolean') {
     if (val) {
-      finalVal = selectedObject.value.fog || new THREE.Fog(
+      finalVal = (selectedObject.value as THREE.Scene).fog || new THREE.Fog(
         localState.value['scene.fog.color'] ?? 0xcccccc,
         localState.value['scene.fog.near'] ?? 1,
         localState.value['scene.fog.far'] ?? 100

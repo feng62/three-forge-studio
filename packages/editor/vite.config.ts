@@ -13,7 +13,7 @@ export default defineConfig({
       fileName: 'index'
     },
     rollupOptions: {
-      external: ['vue', 'three', '@forge/core']
+      external: ['vue', 'three', 'three/webgpu', '@forge/core']
     }
   },
   plugins: [

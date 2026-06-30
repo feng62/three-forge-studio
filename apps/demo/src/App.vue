@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ForgeEditor } from '@forge/editor';
-// The CSS inside @forge/editor (which has tailwindcss) is automatically imported via the package
+// Vue router will handle the views
 </script>
 
 <template>
-  <ForgeEditor />
+  <router-view />
 </template>

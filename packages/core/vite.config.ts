@@ -11,7 +11,7 @@ export default defineConfig({
       fileName: 'index'
     },
     rollupOptions: {
-      external: ['three']
+      external: ['three', '@forge/plugins']
     }
   },
   plugins: [
