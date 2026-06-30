@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { 
-  PhCube, 
-  PhCircle, // for Sphere
-  PhSquare, // for Plane
-  PhCylinder, 
-  PhLightbulb, 
-  PhSun,
-  PhPalette,
-  PhDrop,
-  PhDiamond,
   PhUploadSimple,
-  PhTrash
+  PhTrash,
+  PhCube
 } from '@phosphor-icons/vue';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useEngineStore } from '../../stores/engineStore';
@@ -23,6 +15,7 @@ import { uiPlugins } from '../../plugins';
 import { storeToRefs } from 'pinia';
 import * as THREE from 'three';
 import TexturePreview from '../ui/widgets/TexturePreview.vue';
+import { builtInModels, builtInLights as lights, builtInMaterials as materials } from '../../config/BuiltinAssets';
 
 const settingsStore = useSettingsStore();
 const engineStore = useEngineStore();
@@ -111,33 +104,6 @@ const onTextureChange = async (e: Event) => {
 const deleteExternalModel = async (id: string) => {
   await db.assets.delete(id);
 };
-
-
-const builtInModels = [
-  { type: 'Box', label: '立方体', icon: PhCube },
-  { type: 'Sphere', label: '球体', icon: PhCircle },
-  { type: 'Plane', label: '平面', icon: PhSquare },
-  { type: 'Cylinder', label: '圆柱体', icon: PhCylinder },
-];
-
-const lights = [
-  { type: 'AmbientLight', label: '环境光', icon: PhSun },
-  { type: 'PointLight', label: '点光源', icon: PhLightbulb },
-  { type: 'DirectionalLight', label: '平行光', icon: PhSun },
-  { type: 'SpotLight', label: '聚光灯', icon: PhLightbulb },
-  { type: 'RectAreaLight', label: '面光源', icon: PhSquare },
-];
-
-const materials = [
-  { type: 'Material_Basic', label: '基础材质', icon: PhPalette },
-  { type: 'Material_Standard', label: '标准材质', icon: PhPalette },
-  { type: 'Material_Physical', label: '物理材质', icon: PhPalette },
-  { type: 'Material_Lambert', label: '兰伯特材质', icon: PhPalette },
-  { type: 'Material_Phong', label: '冯氏材质', icon: PhPalette },
-  { type: 'Material_Metal', label: '金属材质', icon: PhDiamond },
-  { type: 'Material_Glass', label: '玻璃材质', icon: PhDrop },
-  { type: 'Material_Wireframe', label: '线框材质', icon: PhPalette },
-];
 
 const handleDragStart = (e: DragEvent, itemType: string) => {
   if (e.dataTransfer) {

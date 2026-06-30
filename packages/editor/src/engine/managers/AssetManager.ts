@@ -1,11 +1,13 @@
 import * as THREE from 'three'
-import { AmbientLight, PointLight, SpotLight, DirectionalLight, RectAreaLight } from 'three/webgpu'
 import { Engine } from '../Engine'
+import { createBuiltInAsset, createBuiltInMaterial } from '../../config/BuiltinAssets'
 import { AddObjectCommand } from '../../history/AddObjectCommand'
 import { SetMaterialCommand } from '../../history/SetMaterialCommand'
 import { historyManager } from '../../history/HistoryManager'
 import { RaycastConfig } from '../../config/RaycastConfig'
-import { GLTFLoader, FBXLoader, EXRLoader } from 'three-stdlib'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
+import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js'
 import ModelWorker from '../../db/modelWorker?worker'
@@ -65,59 +67,9 @@ export class AssetManager {
     // 默认高度偏移，防止物体一半嵌在地下
     let yOffset = 0
 
-    switch (type) {
-      case 'Box':
-        obj = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), material)
-        obj.name = 'Box'
-        yOffset = 0.5
-        break
-      case 'Sphere':
-        obj = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 16), material)
-        obj.name = 'Sphere'
-        yOffset = 0.5
-        break
-      case 'Plane':
-        obj = new THREE.Mesh(
-          new THREE.PlaneGeometry(5, 5), 
-          new THREE.MeshStandardMaterial({ color: 0x888888, side: THREE.DoubleSide })
-        )
-        obj.name = 'Plane'
-        obj.rotation.x = -Math.PI / 2
-        yOffset = 0.01 // 稍微抬高一点防止z-fighting
-        break
-      case 'Cylinder':
-        obj = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1, 32), material)
-        obj.name = 'Cylinder'
-        yOffset = 0.5
-        break
-      case 'AmbientLight':
-        obj = new AmbientLight(0xffffff, 0.5)
-        obj.name = 'AmbientLight'
-        yOffset = 0
-        break
-      case 'PointLight':
-        obj = new PointLight(0xffffff, 1, 100)
-        obj.name = 'PointLight'
-        yOffset = 2
-        break
-      case 'SpotLight':
-        obj = new SpotLight(0xffffff, 1)
-        obj.name = 'SpotLight';
-        (obj as SpotLight).angle = Math.PI / 6
-        yOffset = 5
-        break
-      case 'DirectionalLight':
-        obj = new DirectionalLight(0xffffff, 1)
-        obj.name = 'DirectionalLight'
-        yOffset = 5
-        break
-      case 'RectAreaLight':
-        obj = new RectAreaLight(0xffffff, 5, 2, 2)
-        obj.name = 'RectAreaLight'
-        obj.lookAt(0, 0, 0)
-        yOffset = 3
-        break
-    }
+    const builtin = createBuiltInAsset(type, material)
+    obj = builtin.obj
+    if (obj) yOffset = builtin.yOffset
 
     if (obj) {
       // 计算放置位置
@@ -210,46 +162,7 @@ export class AssetManager {
       let hitObj = validIntersects[0].object as THREE.Mesh
       
       // 生成对应材质
-      let newMaterial: THREE.Material | null = null
-      const color = 0xcccccc
-      
-      switch (type) {
-        case 'Material_Basic':
-          newMaterial = new THREE.MeshBasicMaterial({ color })
-          newMaterial.name = '基础材质'
-          break
-        case 'Material_Standard':
-          newMaterial = new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.1 })
-          newMaterial.name = '标准材质'
-          break
-        case 'Material_Physical':
-          newMaterial = new THREE.MeshPhysicalMaterial({ color, roughness: 0.5, metalness: 0.1, clearcoat: 1.0 })
-          newMaterial.name = '物理材质'
-          break
-        case 'Material_Lambert':
-          newMaterial = new THREE.MeshLambertMaterial({ color })
-          newMaterial.name = '兰伯特材质'
-          break
-        case 'Material_Phong':
-          newMaterial = new THREE.MeshPhongMaterial({ color, shininess: 30 })
-          newMaterial.name = '冯氏材质'
-          break
-        case 'Material_Metal':
-          newMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.2, metalness: 1.0 })
-          newMaterial.name = '金属材质'
-          break
-        case 'Material_Glass':
-          newMaterial = new THREE.MeshPhysicalMaterial({ 
-            color: 0xffffff, transmission: 1.0, opacity: 1, transparent: true, roughness: 0.1, ior: 1.5 
-          })
-          newMaterial.name = '玻璃材质'
-          break
-
-        case 'Material_Wireframe':
-          newMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
-          newMaterial.name = '线框材质'
-          break
-      }
+      let newMaterial: THREE.Material | null = createBuiltInMaterial(type)
 
       if (newMaterial) {
         // 使用历史记录系统执行替换材质
@@ -323,6 +236,13 @@ export class AssetManager {
         }
 
         if (loadedObject) {
+          // Compute BVH for raycasting optimization
+          loadedObject.traverse((child: any) => {
+            if (child.isMesh && child.geometry) {
+              child.geometry.computeBoundsTree()
+            }
+          })
+          
           // 不管是初次加载还是反序列化，loadedObject 本身都不再作为外部模型根节点。
           // 外部模型的根节点统一由 Wrapper 承担。
           

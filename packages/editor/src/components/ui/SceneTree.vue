@@ -135,47 +135,49 @@ const deleteNode = (e: Event, data: SceneTreeNode) => {
 // When selected object changes from outside, highlight the tree node
 watch(() => engineStore.selectedObjectUuid, (newUuid) => {
   if (newUuid && treeRef.value) {
-    // 自动展开包含该节点的父节点
-    const obj = engineStore.engine?.scene.getObjectByProperty('uuid', newUuid);
-    if (obj) {
-      let current = obj.parent;
-      const keysToExpand = new Set(expandedKeys.value);
-      let needsUpdate = false;
-      
-      while (current && current !== engineStore.engine?.scene) {
-        if (!keysToExpand.has(current.uuid)) {
-          keysToExpand.add(current.uuid);
-          needsUpdate = true;
-        }
-        current = current.parent;
-      }
-      
-      if (needsUpdate) {
-        expandedKeys.value = Array.from(keysToExpand);
-        if (treeRef.value && typeof treeRef.value.setExpandedKeys === 'function') {
-          treeRef.value.setExpandedKeys(expandedKeys.value);
-        }
-      }
-    }
-    
-    // 我们需要在 nextTick 或者等展开生效后再 set current key 吗？
-    // 通常 vue 的 ref 响应式更新可以处理，但直接设当前也可以。
+    // 将场景树的计算和展开推迟到下一个宏任务，避免阻塞主线程导致双击3D模型时卡顿
     setTimeout(() => {
-      if (treeRef.value) {
-        treeRef.value.setCurrentKey(newUuid);
-        if (typeof treeRef.value.scrollToNode === 'function') {
-          treeRef.value.scrollToNode(newUuid, 'center');
-        } else {
-          // Fallback if element-plus version is older than 2.8.0
-          setTimeout(() => {
-            const currentEl = document.querySelector('.custom-tree .is-current');
-            if (currentEl) {
-              currentEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
-            }
-          }, 50);
+      // 自动展开包含该节点的父节点
+      const obj = engineStore.engine?.scene.getObjectByProperty('uuid', newUuid);
+      if (obj) {
+        let current = obj.parent;
+        const keysToExpand = new Set(expandedKeys.value);
+        let needsUpdate = false;
+        
+        while (current && current !== engineStore.engine?.scene) {
+          if (!keysToExpand.has(current.uuid)) {
+            keysToExpand.add(current.uuid);
+            needsUpdate = true;
+          }
+          current = current.parent;
+        }
+        
+        if (needsUpdate) {
+          expandedKeys.value = Array.from(keysToExpand);
+          if (treeRef.value && typeof treeRef.value.setExpandedKeys === 'function') {
+            treeRef.value.setExpandedKeys(expandedKeys.value);
+          }
         }
       }
-    }, 50);
+      
+      // 等待 Element Plus 虚拟树 DOM 重新渲染（如展开层级）完成后再执行滚动定位
+      setTimeout(() => {
+        if (treeRef.value) {
+          treeRef.value.setCurrentKey(newUuid);
+          if (typeof treeRef.value.scrollToNode === 'function') {
+            treeRef.value.scrollToNode(newUuid, 'center');
+          } else {
+            // Fallback if element-plus version is older than 2.8.0
+            setTimeout(() => {
+              const currentEl = document.querySelector('.custom-tree .is-current');
+              if (currentEl) {
+                currentEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+              }
+            }, 50);
+          }
+        }
+      }, 50);
+    }, 10);
   } else if (!newUuid && treeRef.value) {
     treeRef.value.setCurrentKey(null);
   }

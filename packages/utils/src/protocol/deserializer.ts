@@ -1,4 +1,4 @@
-import { ObjectLoader, Object3D } from 'three';
+import { ObjectLoader, Object3D, LoadingManager } from 'three';
 import { ForgeSceneJSON, ForgeSceneNode } from '@forge/types';
 import { ForgePlugin } from '@forge/types';
 import { DeserializeReport } from './types';
@@ -7,10 +7,12 @@ import { ForgeValidator } from './validator';
 export class ForgeDeserializer {
   private plugins: ForgePlugin[];
   private currentEngineVersion: string;
+  private manager?: LoadingManager;
 
-  constructor(plugins: ForgePlugin[] = [], engineVersion: string = '1.0.0') {
+  constructor(plugins: ForgePlugin[] = [], engineVersion: string = '1.0.0', manager?: LoadingManager) {
     this.plugins = plugins;
     this.currentEngineVersion = engineVersion;
+    this.manager = manager;
   }
 
   /**
@@ -60,7 +62,7 @@ export class ForgeDeserializer {
       }
     }
 
-    const loader = new ObjectLoader();
+    const loader = new ObjectLoader(this.manager);
     let rootObject: Object3D;
     try {
       rootObject = await loader.parseAsync(nativeJSON);

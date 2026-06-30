@@ -17,11 +17,8 @@ const showDialog = ref(false);
 const publishConfig = ref({
   publishType: 'export' as 'export' | 'local',
   
-  // 导出设置
-  exportBasePath: '/three',
-  
-  // 本地发布设置
-  localFolderName: 'three',
+  // 发布目录名称（ZIP里的顶级目录，或本地发布的目录）
+  folderName: 'three',
 
   // 共享设置：模型压缩
   compressModel: false,
@@ -63,7 +60,7 @@ const handleOpenDialog = async () => {
 const handlePublish = async () => {
   const isLocal = publishConfig.value.publishType === 'local';
   
-  if (isLocal && !publishConfig.value.localFolderName) {
+  if (!publishConfig.value.folderName) {
     ElMessage.warning('请输入发布文件夹名称');
     return;
   }
@@ -84,9 +81,7 @@ const handlePublish = async () => {
       throw new Error('当前没有有效的场景可供发布');
     }
 
-    const basePath = isLocal 
-      ? `/${publishConfig.value.localFolderName}` 
-      : (publishConfig.value.exportBasePath || '');
+    const basePath = `/${publishConfig.value.folderName}`;
     const cleanBasePath = basePath.trim().replace(/\/+$/, '');
 
     // 查询当前场景数据
@@ -106,13 +101,15 @@ const handlePublish = async () => {
     };
 
     let zip: JSZip | null = null;
+    let rootFolder: JSZip | null = null;
     let imageFolder: JSZip | null = null;
     let modelFolder: JSZip | null = null;
 
     if (!isLocal) {
       zip = new JSZip();
-      imageFolder = zip.folder('image');
-      modelFolder = zip.folder('model');
+      rootFolder = zip.folder(publishConfig.value.folderName);
+      imageFolder = rootFolder!.folder('image');
+      modelFolder = rootFolder!.folder('model');
     }
 
     // 辅助函数：通过 HTTP 流式上传文件
@@ -120,7 +117,7 @@ const handlePublish = async () => {
       const res = await fetch('/__local_publish/upload', {
         method: 'POST',
         headers: {
-          'x-folder-name': encodeURIComponent(publishConfig.value.localFolderName),
+          'x-folder-name': encodeURIComponent(publishConfig.value.folderName),
           'x-file-name': encodeURIComponent(fileName)
         },
         body: data as BodyInit
@@ -177,9 +174,9 @@ const handlePublish = async () => {
 
     if (isLocal) {
       await uploadFile('scene.json', sceneJsonStr);
-      ElMessage.success(`本地发布成功: 可访问路径 /${publishConfig.value.localFolderName}`);
+      ElMessage.success(`本地发布成功: 可访问路径 /${publishConfig.value.folderName}`);
     } else {
-      zip!.file('scene.json', sceneJsonStr);
+      rootFolder!.file('scene.json', sceneJsonStr);
       const zipBlob = await zip!.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(zipBlob);
       const a = document.createElement("a");
@@ -227,21 +224,15 @@ const handlePublish = async () => {
         </el-radio-group>
       </el-form-item>
 
-      <!-- 本地发布选项 -->
-      <template v-if="publishConfig.publishType === 'local'">
-        <el-form-item label="发布文件夹">
-          <el-input v-model="publishConfig.localFolderName" placeholder="如 three" />
-          <div class="text-xs text-text-muted mt-1 w-full">将发布到项目的 public/ 目录下，路径将自动推断为 /{{ publishConfig.localFolderName }}</div>
-        </el-form-item>
-      </template>
-
-      <!-- 导出选项 -->
-      <template v-if="publishConfig.publishType === 'export'">
-        <el-form-item label="资源基础路径">
-          <el-input v-model="publishConfig.exportBasePath" placeholder="如 /three 或 ./" />
-          <div class="text-xs text-text-muted mt-1 w-full">导出的 JSON 中资源的 URL 前缀</div>
-        </el-form-item>
-      </template>
+      <el-form-item label="发布文件夹">
+        <el-input v-model="publishConfig.folderName" placeholder="如 three" />
+        <div class="text-xs text-text-muted mt-1 w-full" v-if="publishConfig.publishType === 'local'">
+          将发布到项目的 public/ 目录下，路径将自动推断为 /{{ publishConfig.folderName }}
+        </div>
+        <div class="text-xs text-text-muted mt-1 w-full" v-else>
+          导出的 ZIP 包根目录名称，且内部资源的 URL 前缀也会使用 /{{ publishConfig.folderName }}
+        </div>
+      </el-form-item>
 
       <!-- 公共压缩选项 -->
       <el-divider border-style="dashed" />

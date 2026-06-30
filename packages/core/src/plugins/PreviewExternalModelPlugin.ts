@@ -1,9 +1,12 @@
 import * as THREE from 'three';
-import { GLTFLoader, FBXLoader } from 'three-stdlib';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { BaseExternalModelPlugin } from '@forge/plugins';
 
+// @ts-ignore
 import dracoWasmWrapperUrl from 'three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js?url';
+// @ts-ignore
 import dracoDecoderWasmUrl from 'three/examples/jsm/libs/draco/gltf/draco_decoder.wasm?url';
 
 // 初始化 DRACOLoader 单例以避免重复创建
@@ -16,6 +19,11 @@ dracoLoader.setDecoderPath({
 export class PreviewExternalModelPlugin extends BaseExternalModelPlugin {
   name = 'core_external_model';
   private registryMap = new Map<string, any>();
+  private manager?: THREE.LoadingManager;
+
+  onInstall(engine: any) {
+    this.manager = engine.manager;
+  }
 
   setRegistry(registry: any[]) {
     this.registryMap.clear();
@@ -44,12 +52,12 @@ export class PreviewExternalModelPlugin extends BaseExternalModelPlugin {
     try {
       ext = (registryItem.format || registryItem.type || '').toLowerCase();
       if (ext === 'gltf' || ext === 'glb' || ext === 'model' || url.endsWith('.glb') || url.endsWith('.gltf')) {
-        const loader = new GLTFLoader();
+        const loader = new GLTFLoader(this.manager);
         loader.setDRACOLoader(dracoLoader as any);
         const gltf = await loader.loadAsync(url);
         loadedObject = gltf.scene || gltf.scenes[0];
       } else if (ext === 'fbx' || url.endsWith('.fbx')) {
-        const loader = new FBXLoader();
+        const loader = new FBXLoader(this.manager);
         loadedObject = await loader.loadAsync(url);
       }
     } catch (err) {
@@ -57,6 +65,13 @@ export class PreviewExternalModelPlugin extends BaseExternalModelPlugin {
     }
 
     if (loadedObject) {
+      // Compute BVH for raycasting optimization
+      loadedObject.traverse((child: any) => {
+        if (child.isMesh && child.geometry) {
+          child.geometry.computeBoundsTree()
+        }
+      })
+      
       object.add(loadedObject);
       
       // 恢复外部模型的材质和变换修改

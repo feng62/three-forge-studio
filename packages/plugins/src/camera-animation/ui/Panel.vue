@@ -62,22 +62,11 @@ const addViewpoint = () => {
   const controls = props.engine.orbitControls
   const lookAt = controls?.target ? controls.target.clone() : new THREE.Vector3(0,0,0)
 
-  // 捕获并记录当前被隐藏的所有对象 UUID
-  const hiddenModels: string[] = []
-  props.engine.scene.traverse((child: any) => {
-    if ((child.isMesh || child.isGroup || child.isObject3D) && !child.userData?.isHelper) {
-      if (child.visible === false) {
-        hiddenModels.push(child.uuid)
-      }
-    }
-  })
-
   const newVp: Viewpoint = {
     id: THREE.MathUtils.generateUUID(),
     name: `视角 ${viewpoints.value.length + 1}`,
     cameraPosition: { x: cam.position.x, y: cam.position.y, z: cam.position.z },
     cameraLookAt: { x: lookAt.x, y: lookAt.y, z: lookAt.z },
-    hiddenModels,
     memoryMode: false,
     enterSetting: { hasAnimation: true, duration: 1.5, easing: 'power2.inOut' },
     exitSetting: { hasAnimation: true, duration: 1.5, easing: 'power2.inOut' }
@@ -104,17 +93,6 @@ const updateViewpointCamera = (vp: Viewpoint) => {
   
   vp.cameraPosition = { x: cam.position.x, y: cam.position.y, z: cam.position.z }
   vp.cameraLookAt = { x: lookAt.x, y: lookAt.y, z: lookAt.z }
-  
-  // 同步更新显隐状态记录
-  const hiddenModels: string[] = []
-  props.engine.scene.traverse((child: any) => {
-    if ((child.isMesh || child.isGroup || child.isObject3D) && !child.userData?.isHelper) {
-      if (child.visible === false) {
-        hiddenModels.push(child.uuid)
-      }
-    }
-  })
-  vp.hiddenModels = hiddenModels
   
   saveData()
 }
@@ -169,33 +147,37 @@ const playViewpoint = (vp: Viewpoint) => {
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="flex flex-col gap-2 text-xs">
           <!-- Memory Mode -->
-          <div class="col-span-2 flex items-center justify-between bg-panel p-1 rounded">
+          <div class="flex items-center justify-between bg-panel p-1 rounded">
             <span class="text-text-muted" title="再次返回时是否恢复被修改过的视角">记忆模式</span>
             <el-switch v-model="vp.memoryMode" size="small" @change="saveData" />
           </div>
 
           <!-- Enter Setting -->
-          <div class="col-span-2 text-text-muted mt-1 font-semibold border-b border-border pb-1">前进进入配置</div>
-          <div class="flex items-center justify-between">
-            <span class="text-text-muted">启用动画</span>
-            <el-switch v-model="vp.enterSetting.hasAnimation" size="small" @change="saveData" />
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-text-muted">时长(s)</span>
-            <el-input-number v-model="vp.enterSetting.duration" :min="0" :step="0.5" size="small" class="w-20" @change="saveData" />
+          <div class="text-text-muted mt-1 font-semibold border-b border-border pb-1">前进进入配置</div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex items-center justify-between">
+              <span class="text-text-muted">启用动画</span>
+              <el-switch v-model="vp.enterSetting.hasAnimation" size="small" @change="saveData" />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-text-muted">时长(s)</span>
+              <el-input-number v-model="vp.enterSetting.duration" :min="0" :step="0.5" size="small" class="w-[88px]" @change="saveData" />
+            </div>
           </div>
 
           <!-- Exit Setting -->
-          <div class="col-span-2 text-text-muted mt-1 font-semibold border-b border-border pb-1">退出返回配置</div>
-          <div class="flex items-center justify-between">
-            <span class="text-text-muted">启用动画</span>
-            <el-switch v-model="vp.exitSetting.hasAnimation" size="small" @change="saveData" />
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-text-muted">时长(s)</span>
-            <el-input-number v-model="vp.exitSetting.duration" :min="0" :step="0.5" size="small" class="w-20" @change="saveData" />
+          <div class="text-text-muted mt-1 font-semibold border-b border-border pb-1">退出返回配置</div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex items-center justify-between">
+              <span class="text-text-muted">启用动画</span>
+              <el-switch v-model="vp.exitSetting.hasAnimation" size="small" @change="saveData" />
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-text-muted">时长(s)</span>
+              <el-input-number v-model="vp.exitSetting.duration" :min="0" :step="0.5" size="small" class="w-[88px]" @change="saveData" />
+            </div>
           </div>
         </div>
       </div>

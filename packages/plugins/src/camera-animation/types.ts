@@ -25,9 +25,6 @@ export interface Viewpoint {
   /** 相机的焦点位置 (LookAt目标) */
   cameraLookAt: { x: number; y: number; z: number };
   
-  /** 该视角下被隐藏的模型对象的 UUID 列表 */
-  hiddenModels: string[];
-  
   /** 切入到该视角时所使用的动画配置 (前进进入) */
   enterSetting: TransitionSetting;
   /** 离开该视角时所使用的动画配置 (退出返回) */

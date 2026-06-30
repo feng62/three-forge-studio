@@ -5,6 +5,7 @@ import { useTransformStore } from '../../stores/transformStore'
 import { useCameraStore } from '../../stores/cameraStore'
 import { useThemeStore } from '../../stores/themeStore'
 import { useEngineStore } from '../../stores/engineStore'
+import { Inspector } from 'three/addons/inspector/Inspector.js'
 
 const containerRef = ref<HTMLElement | null>(null)
 let engine: Engine | null = null
@@ -12,10 +13,18 @@ const transformStore = useTransformStore()
 const cameraStore = useCameraStore()
 const themeStore = useThemeStore()
 const engineStore = useEngineStore()
+let inspector: Inspector | null = null
 
 onMounted(() => {
   if (containerRef.value) {
     engine = new Engine()
+    
+    // 绑定 Inspector (必须在 engine.mount 前绑定，以便 renderer.init 能自动初始化)
+    if (engine.renderer) {
+      inspector = new Inspector()
+      ;(engine.renderer as any).inspector = inspector
+    }
+
     engine.mount(containerRef.value)
 
     // Sync initial state
@@ -44,6 +53,12 @@ onUnmounted(() => {
     engine.unmount()
     engine = null
     engineStore.setEngine(null)
+  }
+  if (inspector) {
+    if (inspector.domElement && inspector.domElement.parentNode) {
+      inspector.domElement.parentNode.removeChild(inspector.domElement)
+    }
+    inspector = null
   }
 })
 
@@ -105,3 +120,29 @@ const handleDrop = (e: DragEvent) => {
     </div>
   </main>
 </template>
+
+<style>
+/* 修复 Tailwind CSS 干扰 Inspector 的样式 */
+.three-inspector,
+.three-inspector * {
+  box-sizing: content-box !important;
+}
+
+.three-inspector button {
+  background-color: transparent;
+  border-width: 0;
+  border-style: solid;
+  border-color: transparent;
+}
+.three-inspector .profiler-panel.position-bottom {
+  bottom: 0px !important;
+  top: auto !important;
+}
+
+/* 强制 Inspector 相对 Viewport 容器定位，而不是整个浏览器窗口 */
+.three-inspector .profiler-toggle,
+.three-inspector .profiler-panel,
+.three-inspector .detached-tab-panel {
+  position: absolute !important;
+}
+</style>

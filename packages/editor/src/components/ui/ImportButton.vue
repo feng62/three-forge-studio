@@ -30,10 +30,16 @@ const handleFileChange = async (event: Event) => {
     const zip = new JSZip();
     const loadedZip = await zip.loadAsync(file);
 
-    const sceneFile = loadedZip.file('scene.json');
-    if (!sceneFile) {
+    const sceneFiles = loadedZip.filter((relativePath, file) => {
+      return relativePath.endsWith('scene.json');
+    });
+
+    if (sceneFiles.length === 0) {
       throw new Error('ZIP 包中未找到 scene.json');
     }
+
+    const sceneFile = sceneFiles[0];
+    const basePath = sceneFile.name.substring(0, sceneFile.name.lastIndexOf('scene.json'));
 
     const sceneContent = await sceneFile.async('string');
     const jsonObj = JSON.parse(sceneContent);
@@ -51,7 +57,7 @@ const handleFileChange = async (event: Event) => {
           const ext = item.format || 'bin';
           const fileName = `${item.name}.${ext}`;
           
-          const assetFile = loadedZip.file(`${subDirName}/${fileName}`);
+          const assetFile = loadedZip.file(`${basePath}${subDirName}/${fileName}`);
           if (assetFile) {
             let buffer = await assetFile.async('uint8array');
 

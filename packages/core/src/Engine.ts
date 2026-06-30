@@ -1,17 +1,24 @@
 import * as THREE from 'three'
 import { WebGPURenderer } from 'three/webgpu'
-import { OrbitControls } from 'three-stdlib'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh'
 import { RectAreaLightUniformsLib } from 'three-stdlib'
 import { ForgeSceneJSON, ForgePlugin } from '@forge/types'
 import { ForgeDeserializer } from '@forge/utils'
 import { PreviewExternalModelPlugin } from './plugins/PreviewExternalModelPlugin'
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js'
 
-export class Engine {
+// 注入 three-mesh-bvh 以加速射线检测
+THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree
+THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree
+THREE.Mesh.prototype.raycast = acceleratedRaycast
+
+export class Engine extends THREE.EventDispatcher<any> {
   public scene: THREE.Scene
   public camera: THREE.PerspectiveCamera
   public renderer: WebGPURenderer
   public orbitControls!: OrbitControls
+  public manager: THREE.LoadingManager
 
   public container: HTMLElement | null = null
   private isAnimating: boolean = false
@@ -22,6 +29,7 @@ export class Engine {
    * 初始化核心引擎，包含 WebGPU 渲染器、场景和相机
    */
   constructor() {
+    super()
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color(0x0f172a)
     
@@ -34,6 +42,25 @@ export class Engine {
 
     this.timer = new THREE.Timer()
 
+    this.manager = new THREE.LoadingManager()
+    this.manager.onStart = (url, itemsLoaded, itemsTotal) => {
+      this.dispatchEvent({ type: 'asset-load-start', url, loaded: itemsLoaded, total: itemsTotal })
+    }
+    this.manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+      this.dispatchEvent({ type: 'asset-load-progress', url, loaded: itemsLoaded, total: itemsTotal })
+      for (const plugin of this.plugins) {
+        if (typeof plugin.onLoadProgress === 'function') {
+          plugin.onLoadProgress(url, itemsLoaded, itemsTotal)
+        }
+      }
+    }
+    this.manager.onLoad = () => {
+      this.dispatchEvent({ type: 'asset-load-complete' })
+    }
+    this.manager.onError = (url) => {
+      this.dispatchEvent({ type: 'asset-load-error', url })
+    }
+
     RectAreaLightUniformsLib.init()
 
     // 默认内置注册外部模型解析插件
@@ -45,6 +72,9 @@ export class Engine {
    */
   public use(plugin: ForgePlugin) {
     this.plugins.push(plugin)
+    if (typeof plugin.onInstall === 'function') {
+      plugin.onInstall(this)
+    }
     return this
   }
 
@@ -53,6 +83,8 @@ export class Engine {
    * @param json 序列化好的项目数据
    */
   public async loadJSON(json: ForgeSceneJSON) {
+    this.dispatchEvent({ type: 'json-load-start' })
+
     // 注入 JSON registry 到插件
     for (const plugin of this.plugins) {
       if (typeof (plugin as any).setRegistry === 'function') {
@@ -60,10 +92,11 @@ export class Engine {
       }
     }
 
-    const deserializer = new ForgeDeserializer(this.plugins)
+    const deserializer = new ForgeDeserializer(this.plugins, '1.0.0', this.manager)
     const report = await deserializer.deserialize(json)
     
     if (report.status === 'FATAL') {
+      this.dispatchEvent({ type: 'json-load-error', error: report.errors.join(', ') })
       throw new Error(`Failed to load JSON: ${report.errors.join(', ')}`)
     }
 
@@ -74,6 +107,9 @@ export class Engine {
       while (loadedScene.children.length > 0) {
         this.scene.add(loadedScene.children[0])
       }
+      
+      // 合并 userData (包含由反序列化插件写入的根级扩展数据)
+      Object.assign(this.scene.userData, loadedScene.userData)
       
       // 1. 处理背景和环境光 (因为原生 ObjectLoader 无法直接加载 HDR)
       if (json.scene?.background || json.scene?.environment) {
@@ -103,6 +139,7 @@ export class Engine {
         this.onResize()
       }
     }
+    this.dispatchEvent({ type: 'json-load-complete', report })
     return report
   }
 
@@ -128,12 +165,12 @@ export class Engine {
 
       const ext = (regItem.format || regItem.url.split('.').pop() || '').toLowerCase()
       if (ext === 'hdr') {
-        const loader = new HDRLoader()
+        const loader = new HDRLoader(this.manager)
         const texture = await loader.loadAsync(regItem.url)
         texture.mapping = THREE.EquirectangularReflectionMapping
         return texture
       } else {
-        const loader = new THREE.TextureLoader()
+        const loader = new THREE.TextureLoader(this.manager)
         const texture = await loader.loadAsync(regItem.url)
         texture.colorSpace = THREE.SRGBColorSpace
         texture.mapping = THREE.EquirectangularReflectionMapping
@@ -177,6 +214,13 @@ export class Engine {
     window.addEventListener('resize', this.onResize)
     this.onResize()
 
+    for (const plugin of this.plugins) {
+      if (typeof plugin.onMount === 'function') {
+        plugin.onMount(this)
+      }
+    }
+    this.dispatchEvent({ type: 'mount', container: this.container })
+
     // 默认不自动启动，由外部调用 start()
   }
 
@@ -187,6 +231,14 @@ export class Engine {
     if (this.container && this.renderer.domElement.parentNode === this.container) {
       this.container.removeChild(this.renderer.domElement)
     }
+
+    for (const plugin of this.plugins) {
+      if (typeof plugin.onUnmount === 'function') {
+        plugin.onUnmount()
+      }
+    }
+    this.dispatchEvent({ type: 'unmount' })
+
     this.container = null
   }
 
@@ -199,6 +251,7 @@ export class Engine {
     this.camera.updateProjectionMatrix()
     
     this.renderer.setSize(width, height)
+    this.dispatchEvent({ type: 'resize', width, height })
   }
 
   /**
@@ -218,7 +271,7 @@ export class Engine {
     this.renderer.setAnimationLoop(null)
   }
 
-  private animate = () => {
+  private animate = async () => {
     if (!this.isAnimating) return
     
     this.timer.update()
@@ -230,11 +283,17 @@ export class Engine {
 
     // 触发所有插件的 tick 钩子
     for (const plugin of this.plugins) {
-      if (typeof (plugin as any).tick === 'function') {
-        (plugin as any).tick(delta)
+      if (typeof plugin.tick === 'function') {
+        plugin.tick(delta)
       }
     }
 
+    this.dispatchEvent({ type: 'before-render', delta })
     this.renderer.render(this.scene, this.camera)
+    this.dispatchEvent({ type: 'after-render', delta })
+
+    if ((this.renderer as any).backend?.trackTimestamp) {
+      await (this.renderer as any).resolveTimestampsAsync()
+    }
   }
 }

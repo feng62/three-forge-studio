@@ -43,6 +43,37 @@ export interface ForgePlugin {
    * @param scene 已经实例化出来的根部 Three.js Object3D（通常是 Scene）。
    */
   deserializeRoot?: (extensionData: any, scene: Object3D) => void | Promise<void>;
+
+  /**
+   * 引擎渲染循环的每帧钩子
+   * @param delta 距离上一帧的时间间隔（秒）
+   */
+  tick?: (delta: number) => void;
+
+  /**
+   * 资产加载进度钩子
+   * @param url 当前加载的资源 URL
+   * @param loaded 已经加载完成的资源总数
+   * @param total 需要加载的资源总数
+   */
+  onLoadProgress?: (url: string, loaded: number, total: number) => void;
+
+  /**
+   * 引擎挂载完毕的钩子
+   * @param engine 核心引擎实例（需在使用处进行类型断言或传递 any，因为 types 不依赖 core）
+   */
+  onMount?: (engine: any) => void;
+
+  /**
+   * 插件被引擎注册时立即调用的钩子
+   * @param engine 核心引擎实例
+   */
+  onInstall?: (engine: any) => void;
+
+  /**
+   * 引擎销毁/卸载的钩子
+   */
+  onUnmount?: () => void;
 }
 
 /**
@@ -66,6 +97,9 @@ export interface ForgeAppPlugin {
   /** 插件专属的数据序列化器实例，将被自动挂载至 IndexedDB 的存取流水线中 */
   serializer?: ForgePlugin
   
-  /** 插件的核心业务逻辑（处理引擎层面的动画和数据流等） */
+  /** 插件的核心业务逻辑（处理引擎层面的动画和数据流等，通常用于编辑器态） */
   core?: any
+  
+  /** 插件的纯运行态核心逻辑（脱离 UI 和编辑器，仅针对运行环境） */
+  runtime?: any
 }

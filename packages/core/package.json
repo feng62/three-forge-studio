@@ -15,10 +15,11 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@forge/plugins": "workspace:*",
     "@forge/types": "workspace:*",
     "@forge/utils": "workspace:*",
-    "@forge/plugins": "workspace:*",
     "three": "catalog:",
+    "three-mesh-bvh": "catalog:",
     "three-stdlib": "catalog:"
   },
   "devDependencies": {

@@ -25,6 +25,16 @@ export const CameraAnimationCorePlugin = {
   },
 
   /**
+   * 获取场景中已配置的所有视角列表
+   * @returns 视角对象数组
+   */
+  getViewpoints(): Viewpoint[] {
+    if (!this.engine || !this.engine.scene) return []
+    const data = this.engine.scene.userData.cameraAnimations
+    return data && data.viewpoints ? data.viewpoints : []
+  },
+
+  /**
    * 切换到目标视角
    * @param viewpoint 目标视角的详细配置数据
    * @param viewpoints 所有的视角列表（用于判断前进还是返回逻辑）
@@ -63,9 +73,6 @@ export const CameraAnimationCorePlugin = {
       targetLookAt = cached.lookAt
     }
 
-    // 更新场景中所有模型的显隐状态 (当前采用瞬间切换机制，无需动画过渡)
-    this.applyVisibility(viewpoint.hiddenModels)
-
     // 4. 执行相机过渡动画
     if (setting.hasAnimation && setting.duration > 0) {
       const controls = this.engine.orbitControls
@@ -81,6 +88,9 @@ export const CameraAnimationCorePlugin = {
         lookY: currentLookAt.y,
         lookZ: currentLookAt.z
       }
+
+      // 触发动画开始钩子
+      this.engine.dispatchEvent({ type: 'plugin:camera-animation-start', viewpointId: viewpoint.id, viewpointName: viewpoint.name })
 
       gsap.to(animData, {
         posX: targetPos.x,
@@ -105,11 +115,14 @@ export const CameraAnimationCorePlugin = {
         },
         onComplete: () => {
           this.currentViewpointId = viewpoint.id
+          // 触发动画结束钩子
+          this.engine.dispatchEvent({ type: 'plugin:camera-animation-complete', viewpointId: viewpoint.id, viewpointName: viewpoint.name })
           if (onComplete) onComplete()
         }
       })
     } else {
       // 若未开启过渡动画，则瞬间跳转到目标位姿
+      this.engine.dispatchEvent({ type: 'plugin:camera-animation-start', viewpointId: viewpoint.id, viewpointName: viewpoint.name })
       this.engine.camera.position.set(targetPos.x, targetPos.y, targetPos.z)
       const controls = this.engine.orbitControls
       if (controls && controls.target) {
@@ -120,6 +133,7 @@ export const CameraAnimationCorePlugin = {
       }
       this.engine.renderer.render(this.engine.scene, this.engine.camera)
       this.currentViewpointId = viewpoint.id
+      this.engine.dispatchEvent({ type: 'plugin:camera-animation-complete', viewpointId: viewpoint.id, viewpointName: viewpoint.name })
       if (onComplete) onComplete()
     }
   },
@@ -140,23 +154,5 @@ export const CameraAnimationCorePlugin = {
         lookAt: { x: currentLookAt.x, y: currentLookAt.y, z: currentLookAt.z }
       })
     }
-  },
-
-  /**
-   * 批量应用模型的隐藏/显示状态
-   * @param hiddenModels 需要被隐藏的模型 UUID 数组
-   */
-  applyVisibility(hiddenModels: string[]) {
-    if (!this.engine || !this.engine.scene) return
-    this.engine.scene.traverse((child: any) => {
-      // 仅对实体模型、组节点和外部模型操作，过滤掉所有辅助标识对象（Helper）
-      if ((child.isMesh || child.isGroup || child.isObject3D) && !child.userData?.isHelper) {
-        if (hiddenModels.includes(child.uuid)) {
-          child.visible = false
-        } else {
-          child.visible = true
-        }
-      }
-    })
   }
 }

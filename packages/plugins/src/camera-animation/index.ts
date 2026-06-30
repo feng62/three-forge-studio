@@ -2,10 +2,12 @@ export * from './core'
 export * from './editor'
 export * from './serializer'
 export * from './types'
+export * from './runtime'
 
 import CameraAnimationPanel from './ui/Panel.vue'
 import { CameraAnimationForgePlugin } from './serializer'
 import { CameraAnimationEditorPlugin } from './editor'
+import { CameraAnimationCorePlugin } from './core'
 import type { ForgeAppPlugin } from '@forge/types'
 
 /**
@@ -28,5 +30,8 @@ export const CameraAnimationPlugin: ForgeAppPlugin = {
   serializer: new CameraAnimationForgePlugin(),
   
   /** 插件的核心业务逻辑（处理引擎层面的动画和数据流） */
-  core: CameraAnimationEditorPlugin
+  core: CameraAnimationEditorPlugin,
+
+  /** 纯净版的运行态动画核心控制器 */
+  runtime: CameraAnimationCorePlugin
 }

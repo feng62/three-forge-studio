@@ -129,6 +129,9 @@ importers:
       '@forge/editor':
         specifier: workspace:*
         version: link:../../packages/editor
+      '@forge/plugins':
+        specifier: workspace:*
+        version: link:../../packages/plugins
       '@forge/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -185,6 +188,9 @@ importers:
       three:
         specifier: 'catalog:'
         version: 0.185.0
+      three-mesh-bvh:
+        specifier: 'catalog:'
+        version: 0.9.10(three@0.185.0)
       three-stdlib:
         specifier: 'catalog:'
         version: 2.36.1(three@0.185.0)

@@ -135,12 +135,12 @@ export function localPublishPlugin(): Plugin {
           const writeStream = fs.createWriteStream(filePath);
           req.pipe(writeStream);
 
-          req.on('end', () => {
+          writeStream.on('finish', () => {
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({ success: true, path: `/${folderName}/${fileName}` }));
           });
 
-          req.on('error', (err) => {
+          writeStream.on('error', (err) => {
             console.error('Local publish stream error:', err);
             res.statusCode = 500;
             res.end(JSON.stringify({ success: false, error: err.message }));
