@@ -1,6 +1,17 @@
 import * as THREE from 'three';
 import { GLTFLoader, FBXLoader } from 'three-stdlib';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { BaseExternalModelPlugin } from '@forge/plugins';
+
+import dracoWasmWrapperUrl from 'three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js?url';
+import dracoDecoderWasmUrl from 'three/examples/jsm/libs/draco/gltf/draco_decoder.wasm?url';
+
+// 初始化 DRACOLoader 单例以避免重复创建
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath({
+  js: dracoWasmWrapperUrl,
+  wasm: dracoDecoderWasmUrl
+});
 
 export class PreviewExternalModelPlugin extends BaseExternalModelPlugin {
   name = 'core_external_model';
@@ -34,6 +45,7 @@ export class PreviewExternalModelPlugin extends BaseExternalModelPlugin {
       ext = (registryItem.format || registryItem.type || '').toLowerCase();
       if (ext === 'gltf' || ext === 'glb' || ext === 'model' || url.endsWith('.glb') || url.endsWith('.gltf')) {
         const loader = new GLTFLoader();
+        loader.setDRACOLoader(dracoLoader as any);
         const gltf = await loader.loadAsync(url);
         loadedObject = gltf.scene || gltf.scenes[0];
       } else if (ext === 'fbx' || url.endsWith('.fbx')) {

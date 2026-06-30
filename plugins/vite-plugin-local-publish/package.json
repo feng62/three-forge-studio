@@ -1,0 +1,11 @@
+{
+  "name": "@forge/vite-plugin-local-publish",
+  "version": "1.0.0",
+  "description": "Vite plugin for local publish via HMR WebSocket",
+  "main": "index.ts",
+  "type": "module",
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^8.1.0"
+  }
+}

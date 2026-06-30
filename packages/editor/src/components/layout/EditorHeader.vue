@@ -3,7 +3,8 @@ import { ref } from 'vue';
 import { PhFolderOpen, PhPlus, PhGear } from '@phosphor-icons/vue';
 import Toolbar from '../ui/Toolbar.vue';
 import ProjectHistoryModal from '../ui/ProjectHistoryModal.vue';
-import ExportButton from '../ui/ExportButton.vue';
+import ImportButton from '../ui/ImportButton.vue';
+import PublishButton from '../ui/PublishButton.vue';
 import { useProjectStore } from '../../stores/projectStore';
 
 import SceneDataViewer from '../ui/SceneDataViewer.vue';
@@ -123,6 +124,7 @@ const handleNewProject = async () => {
         <PhFolderOpen :size="14" weight="bold" />
         历史记录
       </button>
+      <ImportButton />
     </div>
 
     <!-- Center: Toolbar -->
@@ -130,7 +132,7 @@ const handleNewProject = async () => {
 
     <!-- Right: Actions -->
     <div class="flex items-center gap-2">
-      <ExportButton />
+      <PublishButton />
       
       <div class="w-px h-6 bg-border mx-2"></div>
       

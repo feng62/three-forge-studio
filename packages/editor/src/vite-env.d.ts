@@ -10,3 +10,5 @@ declare module '*.css' {
   const content: { [className: string]: string };
   export default content;
 }
+
+declare const __LOCAL_PUBLISH_AVAILABLE__: boolean;

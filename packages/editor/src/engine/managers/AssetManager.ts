@@ -6,9 +6,20 @@ import { SetMaterialCommand } from '../../history/SetMaterialCommand'
 import { historyManager } from '../../history/HistoryManager'
 import { RaycastConfig } from '../../config/RaycastConfig'
 import { GLTFLoader, FBXLoader, EXRLoader } from 'three-stdlib'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js'
 import ModelWorker from '../../db/modelWorker?worker'
 import { db } from '../../db/db'
+
+import dracoWasmWrapperUrl from 'three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js?url'
+import dracoDecoderWasmUrl from 'three/examples/jsm/libs/draco/gltf/draco_decoder.wasm?url'
+
+// 初始化 DRACOLoader 单例
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath({
+  js: dracoWasmWrapperUrl,
+  wasm: dracoDecoderWasmUrl
+})
 
 export interface ForgeAssetRegistryItem {
   uuid: string;
@@ -300,6 +311,7 @@ export class AssetManager {
 
         if (ext === 'gltf' || ext === 'glb') {
           const loader = new GLTFLoader()
+          loader.setDRACOLoader(dracoLoader as any)
           const gltf = await loader.loadAsync(url)
           loadedObject = gltf.scene || gltf.scenes[0]
         } else if (ext === 'fbx') {

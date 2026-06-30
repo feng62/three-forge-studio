@@ -2,10 +2,11 @@ import { defineAppConfig } from '../../build/vite.config.base';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
+import { localPublishPlugin } from '../../plugins/vite-plugin-local-publish/index.ts';
 
 // Use the shared defineAppConfig which includes the monorepoWatchPlugin
 export default defineAppConfig({
-  plugins: [vue(), tailwindcss()],
+  plugins: [vue(), tailwindcss(), localPublishPlugin()],
   resolve: {
     alias: [
       { find: '@forge/editor', replacement: path.resolve(__dirname, '../../packages/editor/src/index.ts') },
@@ -14,6 +15,9 @@ export default defineAppConfig({
     ]
   },
   server: {
-    port: 3000
+    port: 3000,
+    watch: {
+      ignored: ['**/public/**']
+    }
   }
 }, ['core', 'editor', 'plugins']); // Watch these packages
