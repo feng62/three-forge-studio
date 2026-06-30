@@ -191,9 +191,6 @@ importers:
       three-mesh-bvh:
         specifier: 'catalog:'
         version: 0.9.10(three@0.185.0)
-      three-stdlib:
-        specifier: 'catalog:'
-        version: 2.36.1(three@0.185.0)
     devDependencies:
       '@types/three':
         specifier: 'catalog:'

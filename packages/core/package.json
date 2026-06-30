@@ -19,8 +19,7 @@
     "@forge/types": "workspace:*",
     "@forge/utils": "workspace:*",
     "three": "catalog:",
-    "three-mesh-bvh": "catalog:",
-    "three-stdlib": "catalog:"
+    "three-mesh-bvh": "catalog:"
   },
   "devDependencies": {
     "@types/three": "catalog:",
