@@ -239,6 +239,8 @@ export class ForgeSerializer {
       delete cleanUserData._externalModifications;
       delete cleanUserData._unknownExtensions;
       delete cleanUserData.cameraAnimations; // Managed by CameraAnimationForgePlugin
+      delete cleanUserData.interactionEvents; // Managed by InteractionForgePlugin
+      delete cleanUserData.labels; // Managed by LabelForgePlugin
       if (Object.keys(cleanUserData).length > 0) {
         forgeNode.userData = cleanUserData;
       }

@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router'
 import { Engine } from '@forge/core'
 import { cameraAnimationRuntime } from '@forge/plugins'
 import { ElMessage } from 'element-plus'
+import { registerCameraAnimationPlugin } from '../plugins/cameraAnimationHandler'
+import { registerInteractionPlugin } from '../plugins/interactionHandler'
+import { registerLabelPlugin } from '../plugins/labelHandler'
 
 const router = useRouter()
 const container = ref<HTMLElement | null>(null)
@@ -28,24 +31,20 @@ onMounted(async () => {
 
   engine = new Engine()
 
-  // 仅仅注册运行时纯净版插件，避免引入编辑器的 Vue UI 代码
-  engine.use(cameraAnimationRuntime)
-
   // 1. 挂载与卸载钩子
   engine.addEventListener('mount', () => console.log('Engine mounted'))
   engine.addEventListener('unmount', () => console.log('Engine unmounted'))
 
-  // 2. 视角漫游插件钩子
-  engine.addEventListener('plugin:camera-animation-start', (e: any) => {
-    isAnimating.value = true
-    activeViewpointId.value = e.viewpointId
-    ElMessage.info(`前往视角: ${e.viewpointName}`)
+  // 2. 注册并初始化各插件业务逻辑
+  registerCameraAnimationPlugin(engine, (isAnim: boolean, vpId: string) => {
+    isAnimating.value = isAnim
+    if (vpId) {
+      activeViewpointId.value = vpId
+    }
   })
   
-  engine.addEventListener('plugin:camera-animation-complete', (e: any) => {
-    isAnimating.value = false
-    ElMessage.success(`已到达: ${e.viewpointName}`)
-  })
+  registerInteractionPlugin(engine)
+  registerLabelPlugin(engine)
 
   // 3. 加载流程钩子
   engine.addEventListener('json-load-start', () => {

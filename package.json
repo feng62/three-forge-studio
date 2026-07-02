@@ -23,6 +23,7 @@
     "vue": "catalog:"
   },
   "dependencies": {
+    "@guolao/vue-monaco-editor": "^1.6.0",
     "@phosphor-icons/vue": "catalog:"
   }
 }

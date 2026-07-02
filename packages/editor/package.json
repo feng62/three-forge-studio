@@ -24,6 +24,7 @@
     "@gltf-transform/core": "^4.4.0",
     "@gltf-transform/extensions": "^4.4.0",
     "@gltf-transform/functions": "^4.4.0",
+    "@guolao/vue-monaco-editor": "^1.6.0",
     "@types/three": "catalog:",
     "@vueuse/core": "catalog:",
     "dexie": "catalog:",

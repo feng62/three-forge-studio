@@ -4,5 +4,7 @@
 
 export * from './camera-animation/index';
 export * from './animation-editor/index';
+export * from './interaction/index';
 export * from './base/BaseExternalModelPlugin';
+export * from './label/index';
 // export * from './physics/index';

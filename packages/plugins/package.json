@@ -9,6 +9,7 @@
     "@element-plus/icons-vue": "catalog:",
     "@forge/types": "workspace:*",
     "@forge/utils": "workspace:*",
+    "@guolao/vue-monaco-editor": "^1.6.0",
     "gsap": "catalog:",
     "three": "catalog:"
   }
