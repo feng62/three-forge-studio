@@ -9,6 +9,7 @@ export default defineAppConfig({
   plugins: [vue(), tailwindcss(), localPublishPlugin()],
   resolve: {
     alias: [
+      { find: 'vue', replacement: 'vue/dist/vue.esm-bundler.js' },
       { find: '@forge/editor', replacement: path.resolve(__dirname, '../../packages/editor/src/index.ts') },
       { find: '@forge/core', replacement: path.resolve(__dirname, '../../packages/core/src/index.ts') },
       { find: '@forge/plugins', replacement: path.resolve(__dirname, '../../packages/plugins/src/index.ts') }

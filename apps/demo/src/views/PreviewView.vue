@@ -1,26 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { Engine } from '@forge/core'
-import { cameraAnimationRuntime } from '@forge/plugins'
-import { ElMessage } from 'element-plus'
-import { registerCameraAnimationPlugin } from '../plugins/cameraAnimationHandler'
-import { registerInteractionPlugin } from '../plugins/interactionHandler'
-import { registerLabelPlugin } from '../plugins/labelHandler'
+
+import PreviewViewpoints from '../components/preview/PreviewViewpoints.vue'
+import PreviewLabels from '../components/preview/PreviewLabels.vue'
+import PreviewInteraction from '../components/preview/PreviewInteraction.vue'
 
 const router = useRouter()
 const container = ref<HTMLElement | null>(null)
-let engine: Engine | null = null
+const engineRef = shallowRef<Engine | null>(null)
 
 // 状态
 const isLoading = ref(true)
 const loadingText = ref('初始化引擎...')
 const loadingPercent = ref(0)
 const fps = ref(0)
-
-const viewpoints = ref<any[]>([])
-const activeViewpointId = ref('')
-const isAnimating = ref(false)
 
 const goBack = () => {
   router.push('/')
@@ -29,24 +24,18 @@ const goBack = () => {
 onMounted(async () => {
   if (!container.value) return
 
-  engine = new Engine()
+  const engine = new Engine()
+  engineRef.value = engine
+
+  // 等待 Vue 更新 DOM，使得包裹在 v-show="!isLoading" 下的子组件被挂载
+  // 子组件挂载后，会向 engine 注册它们自己的运行时插件
+  await nextTick()
 
   // 1. 挂载与卸载钩子
   engine.addEventListener('mount', () => console.log('Engine mounted'))
   engine.addEventListener('unmount', () => console.log('Engine unmounted'))
 
-  // 2. 注册并初始化各插件业务逻辑
-  registerCameraAnimationPlugin(engine, (isAnim: boolean, vpId: string) => {
-    isAnimating.value = isAnim
-    if (vpId) {
-      activeViewpointId.value = vpId
-    }
-  })
-  
-  registerInteractionPlugin(engine)
-  registerLabelPlugin(engine)
-
-  // 3. 加载流程钩子
+  // 2. 加载流程钩子
   engine.addEventListener('json-load-start', () => {
     isLoading.value = true
     loadingText.value = '解析场景结构中...'
@@ -63,11 +52,10 @@ onMounted(async () => {
     isLoading.value = false
   })
 
-  // 3. 渲染循环钩子 (计算 FPS)
+  // 4. 渲染循环钩子 (计算 FPS)
   let frames = 0
   let lastTime = performance.now()
   engine.addEventListener('before-render', (e: any) => {
-    // e.delta 可以用来更新物理引擎、后处理等
     frames++
     const now = performance.now()
     if (now - lastTime >= 1000) {
@@ -75,9 +63,6 @@ onMounted(async () => {
       frames = 0
       lastTime = now
     }
-  })
-  engine.addEventListener('after-render', () => {
-    // 渲染完成后的钩子，比如可以做截图保存等
   })
 
   await engine.mount(container.value)
@@ -89,12 +74,8 @@ onMounted(async () => {
     }
     const jsonObj = await res.json()
     
-    // 开始加载
+    // 开始加载 (此时所有插件都已通过子组件的挂载完成了 use 注册)
     await engine.loadJSON(jsonObj)
-    
-    // 从场景获取所有视角数据
-    viewpoints.value = cameraAnimationRuntime.getViewpoints()
-
     engine.start()
   } catch (err) {
     console.error('Preview failed to load scene:', err)
@@ -102,15 +83,10 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  if (engine) {
-    engine.unmount()
+  if (engineRef.value) {
+    engineRef.value.unmount()
   }
 })
-
-const goToViewpoint = (vp: any) => {
-  if (!vp || isAnimating.value) return
-  cameraAnimationRuntime.switchToViewpoint(vp, viewpoints.value)
-}
 </script>
 
 <template>
@@ -126,26 +102,32 @@ const goToViewpoint = (vp: any) => {
       返回编辑器
     </button>
 
+    <!-- 交互逻辑等无 UI 依赖的后台组件 -->
+    <PreviewInteraction v-if="engineRef" :engine="engineRef" />
+
     <!-- FPS 显示 (通过 render 钩子更新) -->
     <div class="absolute top-6 right-6 px-3 py-1 bg-black/50 backdrop-blur text-green-400 font-mono text-sm rounded-md shadow pointer-events-none z-50">
       FPS: {{ fps }}
     </div>
 
-    <!-- 视角漫游控制栏 -->
+    <!-- 控制栏：业务功能集合 (放置在右侧，自上而下排列) -->
     <div 
-      v-if="viewpoints.length > 0 && !isLoading" 
-      class="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-panel/80 backdrop-blur border border-border p-1.5 rounded-xl shadow-xl z-50"
+      v-show="!isLoading" 
+      class="absolute top-20 right-6 flex flex-col gap-4 z-50 items-end"
     >
-      <button
-        v-for="vp in viewpoints"
-        :key="vp.id"
-        @click="goToViewpoint(vp)"
-        class="px-4 py-2 rounded-lg text-sm font-medium transition-all"
-        :class="activeViewpointId === vp.id ? 'bg-primary text-white shadow-md' : 'hover:bg-slate-700/50 text-text-main'"
-        :disabled="isAnimating"
-      >
-        {{ vp.name }}
-      </button>
+      <!-- 视角漫游 -->
+      <PreviewViewpoints
+        v-if="engineRef"
+        :engine="engineRef"
+        :isLoading="isLoading"
+      />
+
+      <!-- 标签开关 -->
+      <PreviewLabels 
+        v-if="engineRef"
+        :engine="engineRef"
+        :isLoading="isLoading"
+      />
     </div>
 
     <!-- 加载遮罩 (通过 load 钩子更新) -->

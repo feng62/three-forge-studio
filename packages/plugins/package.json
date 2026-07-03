@@ -10,7 +10,9 @@
     "@forge/types": "workspace:*",
     "@forge/utils": "workspace:*",
     "@guolao/vue-monaco-editor": "^1.6.0",
+    "element-plus": "catalog:",
     "gsap": "catalog:",
-    "three": "catalog:"
+    "three": "catalog:",
+    "vue3-sfc-loader": "^0.9.5"
   }
 }

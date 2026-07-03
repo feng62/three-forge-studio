@@ -15,6 +15,24 @@ export class LabelRuntimePlugin {
     engine.use(LabelCorePlugin)
     engine.use(this.serializer)
   }
+
+  // ========== 代理向外暴露的便捷业务 API ==========
+
+  /**
+   * 获取场景中已配置的所有标签列表
+   */
+  getLabels() {
+    return LabelCorePlugin.getLabels()
+  }
+
+  /**
+   * 控制标签的显示/隐藏
+   * @param id 标签的 ID
+   * @param visible 是否可见
+   */
+  setLabelVisible(id: string, visible: boolean) {
+    LabelCorePlugin.setLabelVisible(id, visible)
+  }
 }
 
 // 导出一个默认实例供快速引入

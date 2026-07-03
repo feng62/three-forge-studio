@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { resolvePath } from '@forge/utils';
 import { HtmlLabel, LabelManager } from './HtmlLabelSystem';
 import type { LabelPluginState, LabelObject } from './types';
-import { createApp } from 'vue/dist/vue.esm-bundler.js'; // Use the bundler version to include compiler
+import * as Vue from 'vue';
+import { loadModule } from 'vue3-sfc-loader';
 
 export const LabelCorePlugin = {
   name: 'Forge_Label_Core',
@@ -87,6 +88,9 @@ export const LabelCorePlugin = {
   refreshLabels() {
     if (!this.engine || !this.labelManager) return;
     
+    // Ensure the entire scene's matrices are up to date before computing any bounding boxes or label positions
+    this.engine.scene.updateMatrixWorld(true);
+    
     const currentIds = new Set(this.pluginState.labels.map(l => l.id));
     
     // Remove deleted labels
@@ -125,7 +129,13 @@ export const LabelCorePlugin = {
         // Prepare _data context
         const dataContext: any = { model: null, ...(labelDef._data || {}) };
         if (labelDef.targetType === 'model' && labelDef.targetModelUuid) {
-          const targetObj = this.engine.scene.getObjectByProperty('uuid', labelDef.targetModelUuid);
+          let targetObj = this.engine.scene.getObjectByProperty('uuid', labelDef.targetModelUuid);
+          if (targetObj && labelDef.targetModelPath) {
+            const childObj = resolvePath(targetObj, labelDef.targetModelPath);
+            if (childObj) {
+              targetObj = childObj;
+            }
+          }
           if (targetObj) {
             dataContext.model = {
               uuid: targetObj.uuid,
@@ -137,20 +147,62 @@ export const LabelCorePlugin = {
         }
         
         if (labelDef.renderType === 'vue') {
-          // Vue runtime compilation
-          try {
-            const app = createApp({
-              template: labelDef.code,
-              setup() {
-                return dataContext; // dataContext already has model
+          const vueRoot = document.createElement('div');
+          div.appendChild(vueRoot);
+          
+          (async () => {
+            try {
+              const options = {
+                moduleCache: { vue: Vue },
+                async getFile(url: string) {
+                  // Fallback to labelDef.code if files not defined or empty
+                  const files = labelDef.files || { '/App.vue': labelDef.code || '' };
+                  const filename = url.startsWith('/') ? url : '/' + url.replace(/^\.\//, '');
+                  if (files[filename] !== undefined) {
+                    return files[filename];
+                  }
+                  if (filename === '/App.vue') {
+                    return labelDef.code || '';
+                  }
+                  throw new Error(`File not found: ${url}`);
+                },
+                addStyle(textContent: string) {
+                  const style = document.createElement('style');
+                  style.textContent = textContent;
+                  div.appendChild(style);
+                }
+              };
+              
+              const component = await loadModule('/App.vue', options);
+              
+              // Pass the model as a root prop
+              const app = Vue.createApp(component, { model: dataContext.model });
+              
+              // Register other files as global components
+              if (labelDef.files) {
+                for (const filename of Object.keys(labelDef.files)) {
+                  if (filename !== '/App.vue' && filename.endsWith('.vue')) {
+                    try {
+                      const childComp = await loadModule(filename, options);
+                      const compName = filename.replace(/^\//, '').replace(/\.vue$/, '');
+                      app.component(compName, childComp);
+                    } catch (e) {
+                      console.warn(`Failed to auto-register component ${filename}`, e);
+                    }
+                  }
+                }
               }
-            });
-            app.mount(div);
-            this.activeVueApps.set(labelDef.id, app);
-          } catch (e) {
-            console.error("Vue compilation error in label", e);
-            div.innerHTML = `<div style="color:red;background:black;padding:4px">Vue Error</div>`;
-          }
+              
+              // Check if the label is still active and in DOM before mounting
+              if (this.labelManager && this.activeLabels.has(labelDef.id)) {
+                app.mount(vueRoot);
+                this.activeVueApps.set(labelDef.id, app);
+              }
+            } catch (e) {
+              console.error("Vue SFC compilation error in label", e);
+              vueRoot.innerHTML = `<div style="color:red;background:black;padding:4px;font-size:12px;border:1px solid red;max-width:300px;word-wrap:break-word;">Vue Error: ${e}</div>`;
+            }
+          })();
         } else {
           div.innerHTML = labelDef.code;
         }
@@ -158,7 +210,12 @@ export const LabelCorePlugin = {
         htmlLabel = new HtmlLabel(div, {
           anchor: labelDef.anchor,
           pointerEvents: 'auto',
-          zIndexRange: [9999, 0] // Ensure it doesn't overlap editor UI
+          zIndexRange: [9999, 0], // Ensure it doesn't overlap editor UI
+          is3D: labelDef.is3D,
+          occluded: labelDef.occluded,
+          fixedRotation: labelDef.fixedRotation,
+          rotation: labelDef.rotation,
+          followAxis: labelDef.followAxis
         });
         
         this.labelManager.add(htmlLabel);
@@ -166,7 +223,16 @@ export const LabelCorePlugin = {
       } else if (htmlLabel) {
         // Just update anchor without recreating element
         htmlLabel.options.anchor = labelDef.anchor;
+        htmlLabel.options.is3D = labelDef.is3D;
+        htmlLabel.options.occluded = labelDef.occluded;
+        htmlLabel.options.fixedRotation = labelDef.fixedRotation;
+        htmlLabel.options.rotation = labelDef.rotation;
+        htmlLabel.options.followAxis = labelDef.followAxis;
       }
+      
+      // Ensure group name is synced and it is not exported to scene json
+      htmlLabel.group.name = labelDef.name;
+      htmlLabel.group.userData.isHelper = true;
       
       // Update visibility and dispatch callbacks
       const wasVisible = htmlLabel.element.style.display !== 'none';
@@ -213,6 +279,8 @@ export const LabelCorePlugin = {
           targetObj.add(htmlLabel.group);
         }
         
+        targetObj.updateMatrixWorld(true);
+        
         const box = new THREE.Box3().setFromObject(targetObj);
         const center = new THREE.Vector3();
         box.getCenter(center);
@@ -226,6 +294,18 @@ export const LabelCorePlugin = {
         }
         htmlLabel.position(0, 0, 0);
       }
+    }
+  },
+
+  getLabels(): LabelObject[] {
+    return this.pluginState.labels || [];
+  },
+
+  setLabelVisible(id: string, visible: boolean) {
+    const labelDef = this.pluginState.labels?.find((l: LabelObject) => l.id === id);
+    if (labelDef) {
+      labelDef.visible = visible;
+      this.refreshLabels();
     }
   },
 
