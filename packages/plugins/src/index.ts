@@ -8,3 +8,5 @@ export * from './interaction/index';
 export * from './base/BaseExternalModelPlugin';
 export * from './label/index';
 // export * from './physics/index';
+
+export * from './visual-logic';

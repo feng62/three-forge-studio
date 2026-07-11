@@ -297,10 +297,16 @@ export const LabelCorePlugin = {
     }
   },
 
+  /**
+   * 获取所有标签列表
+   */
   getLabels(): LabelObject[] {
     return this.pluginState.labels || [];
   },
 
+  /**
+   * 运行时设置标签显示/隐藏
+   */
   setLabelVisible(id: string, visible: boolean) {
     const labelDef = this.pluginState.labels?.find((l: LabelObject) => l.id === id);
     if (labelDef) {
@@ -332,29 +338,11 @@ export const LabelCorePlugin = {
       this.callbacks[eventName].forEach(cb => cb(data));
     }
   },
-  
-  /**
-   * 获取所有标签列表
-   */
-  getLabels(): LabelObject[] {
-    return this.pluginState.labels;
-  },
-  
+
   /**
    * 获取指定标签状态
    */
   getLabelState(id: string): LabelObject | undefined {
     return this.pluginState.labels.find(l => l.id === id);
   },
-  
-  /**
-   * 运行时设置标签显示/隐藏
-   */
-  setLabelVisible(id: string, visible: boolean) {
-    const labelDef = this.pluginState.labels.find(l => l.id === id);
-    if (labelDef) {
-      labelDef.visible = visible;
-      this.refreshLabels();
-    }
-  }
 };

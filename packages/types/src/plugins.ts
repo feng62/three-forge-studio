@@ -92,6 +92,8 @@ export interface ForgeAppPlugin {
     bottomPanel?: Component
     /** UI 左侧标签页显示的文字（支持按行拆分，如果有panel则必须） */
     tabLabel?: string[]
+    /** 激活该插件时，底部面板是否自动全屏最大化占用场景区域（可选） */
+    autoMaximizeBottomPanel?: boolean
   }
   
   /** 插件专属的数据序列化器实例，将被自动挂载至 IndexedDB 的存取流水线中 */

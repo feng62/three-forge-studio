@@ -44,7 +44,7 @@ watch(() => props.sceneGraphVersion, () => {
   loadData();
 });
 
-const loadData = () => {
+function loadData() {
   const data = InteractionEditorPlugin.loadData() as InteractionPluginState;
   pluginState.value = data && data.events ? data : { events: {} };
   InteractionCorePlugin.setState(JSON.parse(JSON.stringify(pluginState.value)));

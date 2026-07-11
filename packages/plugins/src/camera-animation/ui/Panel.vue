@@ -31,13 +31,14 @@ watch(() => props.engine, (newEngine) => {
   }
 }, { immediate: true })
 
+
 // 监听场景图版本更新，确保在别的面板导入新模型/清空场景时，插件的视角数据也能同步重置或刷新
 watch(() => props.sceneGraphVersion, () => {
   loadData()
 })
 
 /** 从 userData 加载数据渲染到组件内存 */
-const loadData = () => {
+function loadData() {
   const data = CameraAnimationEditorPlugin.loadData() as CameraAnimationData
   if (data && data.viewpoints) {
     viewpoints.value = data.viewpoints

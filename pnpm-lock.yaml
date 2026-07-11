@@ -325,9 +325,42 @@ importers:
       element-plus:
         specifier: 'catalog:'
         version: 2.14.2(vue@3.5.39(typescript@6.0.3))
+      elkjs:
+        specifier: ^0.8.2
+        version: 0.8.2
       gsap:
         specifier: 'catalog:'
         version: 3.15.0
+      rete:
+        specifier: ^2.0.6
+        version: 2.0.6
+      rete-area-plugin:
+        specifier: ^2.3.2
+        version: 2.3.2(rete@2.0.6)
+      rete-auto-arrange-plugin:
+        specifier: ^2.0.2
+        version: 2.0.2(elkjs@0.8.2)(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6)(web-worker@1.5.0)
+      rete-connection-plugin:
+        specifier: ^2.0.5
+        version: 2.0.5(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6)
+      rete-connection-reroute-plugin:
+        specifier: ^2.0.3
+        version: 2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete-render-utils@2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6))(rete@2.0.6)
+      rete-context-menu-plugin:
+        specifier: ^2.0.6
+        version: 2.0.6(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6)
+      rete-engine:
+        specifier: ^2.1.1
+        version: 2.1.1(rete@2.0.6)
+      rete-minimap-plugin:
+        specifier: ^2.0.3
+        version: 2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6)
+      rete-render-utils:
+        specifier: ^2.0.3
+        version: 2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6)
+      rete-vue-plugin:
+        specifier: ^2.1.3
+        version: 2.1.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete-render-utils@2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6))(rete@2.0.6)(vue@3.5.39(typescript@6.0.3))
       three:
         specifier: 'catalog:'
         version: 0.185.0
@@ -590,6 +623,10 @@ packages:
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
+
+  '@babel/runtime@7.29.7':
+    resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
+    engines: {node: '>=6.9.0'}
 
   '@babel/template@7.29.7':
     resolution: {integrity: sha512-puq+Gf35oI24FeN11LkoUQFqv9uwNeWpxXZi/Ji3rRIoKAzKnxRaZ+Gkj0vKS9ZCiTESfng1N9LyOyXvo+m+Gg==}
@@ -1997,6 +2034,9 @@ packages:
     peerDependencies:
       vue: ^3.3.7
 
+  elkjs@0.8.2:
+    resolution: {integrity: sha512-L6uRgvZTH+4OF5NE/MBbzQx/WYpru1xCBE9respNj6qznEewGUIfhzmm7horWWxbNO2M0WckQypGctR8lH79xQ==}
+
   emoji-regex-xs@1.0.0:
     resolution: {integrity: sha512-LRlerrMYoIDrT6jgpeZ2YYl/L8EulRTt5hQcYjy5AInh7HWXKimpqx68aknBFpGL2+/IcogTcaydJEgaTmOpDg==}
 
@@ -2522,6 +2562,66 @@ packages:
     resolution: {integrity: sha512-oMA2dcrw6u0YfxJQXm342bFKX/E4sG9rbTzO9ptUcR/e8A33cHuvStiYOwH7fszkZlZ1z/ta9AAoPk2F4qIOHA==}
     engines: {node: '>=18'}
 
+  rete-area-plugin@2.3.2:
+    resolution: {integrity: sha512-s7OrCz6xNwVl8EaJ7tXnJVQD9nbd+JAnf82qx/UDweRV86Q1qj2+nT8XkD5m1gSnvSZQqTlMptSiWUrouTEO+w==}
+    peerDependencies:
+      rete: ^2.0.0
+
+  rete-auto-arrange-plugin@2.0.2:
+    resolution: {integrity: sha512-VLTnVb9tqHfQKkFMZzpYgYxDWcIa+nXHRC+Po0k+gUh2zJqegkx8bFSA1n6VkMv+wPYa9EnWsTMfUDD3k1QEzg==}
+    peerDependencies:
+      elkjs: ^0.8.2
+      rete: ^2.0.1
+      rete-area-plugin: ^2.0.0
+      web-worker: ^1.2.0
+
+  rete-connection-plugin@2.0.5:
+    resolution: {integrity: sha512-KFtlOyEJRc0y9STVgo2T+t+j9u5fxiTxbyzPbMCm0uqncb3b8d2ABDIzvWoNo5zQAh2Oz/OvlUovupbzrGzpSg==}
+    peerDependencies:
+      rete: ^2.0.1
+      rete-area-plugin: ^2.0.0
+
+  rete-connection-reroute-plugin@2.0.3:
+    resolution: {integrity: sha512-8tWNrk7xQO0F3o6nj1mF6w9SdIP2+AYZh0a8811CusI70+T8JoJl7Ex6T5fz6bJVaYObidmZ3p7CD7pccKXc+A==}
+    peerDependencies:
+      rete: ^2.0.1
+      rete-area-plugin: ^2.0.0
+      rete-render-utils: ^2.0.0
+
+  rete-context-menu-plugin@2.0.6:
+    resolution: {integrity: sha512-OmzdYEDvaJux4W7pTZPJ9oxO+YMNA4cw3/262ia564+0HXazrcHjyg3m6jXswfleeOS8SAaV+e+X3caTLUyEgw==}
+    peerDependencies:
+      rete: ^2.0.1
+      rete-area-plugin: ^2.0.0
+
+  rete-engine@2.1.1:
+    resolution: {integrity: sha512-RrIQDQycD5QZlDYCG1FKu2GLOKTgeIPLxKefnTVoOk7xYAyzlQ4HhXRa+ldsGaFAZzQHOXPgbkqis9ZqSB36MA==}
+    peerDependencies:
+      rete: ^2.0.1
+
+  rete-minimap-plugin@2.0.3:
+    resolution: {integrity: sha512-4rLvN6ykTY4Q1k6GO6W80mUbs5BXmGNtSXDumCF+eKkCK2nX8CNZGppcOqjTiWxHmsQfbZaKFwvnWDNwou4HHA==}
+    peerDependencies:
+      rete: ^2.0.1
+      rete-area-plugin: ^2.0.0
+
+  rete-render-utils@2.0.3:
+    resolution: {integrity: sha512-Oz4W2PNayHocRvlzadb5BCNf+tDzJ8RhTwB3ucBPCdCLKZ974wWDiTSCRfA287L2hmHVzRfBdyAwC03K9eP+4g==}
+    peerDependencies:
+      rete: ^2.0.0
+      rete-area-plugin: ^2.0.0
+
+  rete-vue-plugin@2.1.3:
+    resolution: {integrity: sha512-LE+9bdwGfQftwNhOlaryqAXRH6KMnD3xdEm86FtImVcEU9L4jhyxyzSqAf3bFxcrYo9rq+qF41YJus5An2mSjw==}
+    peerDependencies:
+      rete: ^2.0.1
+      rete-area-plugin: ^2.0.0
+      rete-render-utils: ^2.0.0
+      vue: ^2.6 || ^3.2
+
+  rete@2.0.6:
+    resolution: {integrity: sha512-kPmlKCGFES2VWtY7Y7SCB8ZeXRMsgX5deza9cu4OwmfM/ZUimd461kC3hRyccoyVxE4POlHUx0gg2jcGfusHFg==}
+
   rfdc@1.4.1:
     resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
 
@@ -2918,6 +3018,9 @@ packages:
       typescript:
         optional: true
 
+  web-worker@1.5.0:
+    resolution: {integrity: sha512-RiMReJrTAiA+mBjGONMnjVDP2u3p9R1vkcGz6gDIrOMT3oGuYwX2WRMYI9ipkphSuE5XKEhydbhNEJh4NY9mlw==}
+
   webpack-virtual-modules@0.6.2:
     resolution: {integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==}
 
@@ -3244,6 +3347,8 @@ snapshots:
       '@babel/plugin-syntax-typescript': 7.29.7(@babel/core@7.29.7)
     transitivePeerDependencies:
       - supports-color
+
+  '@babel/runtime@7.29.7': {}
 
   '@babel/template@7.29.7':
     dependencies:
@@ -4422,6 +4527,8 @@ snapshots:
       vue: 3.5.39(typescript@6.0.3)
       vue-component-type-helpers: 3.3.5
 
+  elkjs@0.8.2: {}
+
   emoji-regex-xs@1.0.0: {}
 
   emoji-regex@10.6.0: {}
@@ -4939,6 +5046,67 @@ snapshots:
       onetime: 7.0.0
       signal-exit: 4.1.0
 
+  rete-area-plugin@2.3.2(rete@2.0.6):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      rete: 2.0.6
+
+  rete-auto-arrange-plugin@2.0.2(elkjs@0.8.2)(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6)(web-worker@1.5.0):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      elkjs: 0.8.2
+      rete: 2.0.6
+      rete-area-plugin: 2.3.2(rete@2.0.6)
+      web-worker: 1.5.0
+
+  rete-connection-plugin@2.0.5(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      rete: 2.0.6
+      rete-area-plugin: 2.3.2(rete@2.0.6)
+
+  rete-connection-reroute-plugin@2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete-render-utils@2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6))(rete@2.0.6):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      rete: 2.0.6
+      rete-area-plugin: 2.3.2(rete@2.0.6)
+      rete-render-utils: 2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6)
+
+  rete-context-menu-plugin@2.0.6(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      rete: 2.0.6
+      rete-area-plugin: 2.3.2(rete@2.0.6)
+
+  rete-engine@2.1.1(rete@2.0.6):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      rete: 2.0.6
+
+  rete-minimap-plugin@2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      rete: 2.0.6
+      rete-area-plugin: 2.3.2(rete@2.0.6)
+
+  rete-render-utils@2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      rete: 2.0.6
+      rete-area-plugin: 2.3.2(rete@2.0.6)
+
+  rete-vue-plugin@2.1.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete-render-utils@2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6))(rete@2.0.6)(vue@3.5.39(typescript@6.0.3)):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      rete: 2.0.6
+      rete-area-plugin: 2.3.2(rete@2.0.6)
+      rete-render-utils: 2.0.3(rete-area-plugin@2.3.2(rete@2.0.6))(rete@2.0.6)
+      vue: 3.5.39(typescript@6.0.3)
+
+  rete@2.0.6:
+    dependencies:
+      '@babel/runtime': 7.29.7
+
   rfdc@1.4.1: {}
 
   rolldown@1.1.3:
@@ -5443,6 +5611,8 @@ snapshots:
       '@vue/shared': 3.5.39
     optionalDependencies:
       typescript: 6.0.3
+
+  web-worker@1.5.0: {}
 
   webpack-virtual-modules@0.6.2: {}
 

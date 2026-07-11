@@ -62,13 +62,16 @@ onUnmounted(() => {
     <div class="flex-1 flex overflow-hidden relative z-10">
       <LeftPanel />
       <div class="flex-1 flex flex-col relative overflow-hidden">
-        <Viewport class="flex-1" />
+        <Viewport v-show="!uiStore.isBottomPanelMaximized" class="flex-1" />
         
         <!-- Bottom Panels Area -->
         <transition name="slide-up">
           <div 
             v-if="pluginsWithBottomPanel.length > 0"
-            class="flex-shrink-0 flex flex-col bg-panel border-t border-border z-10 max-h-[40vh] overflow-y-auto custom-scrollbar"
+            :class="[
+              'flex-shrink-0 flex flex-col bg-panel border-t border-border z-10 custom-scrollbar',
+              uiStore.isBottomPanelMaximized ? 'flex-1 h-full max-h-full' : 'max-h-[40vh] overflow-y-auto'
+            ]"
           >
             <component 
               v-for="plugin in pluginsWithBottomPanel" 
@@ -76,7 +79,9 @@ onUnmounted(() => {
               :is="plugin.ui!.bottomPanel" 
               :engine="engineStore.engine"
               :sceneGraphVersion="engineStore.sceneGraphVersion"
+              :isMaximized="uiStore.isBottomPanelMaximized"
               @save="projectStore.saveProject()"
+              @toggle-full-screen="uiStore.isBottomPanelMaximized = !uiStore.isBottomPanelMaximized"
             />
           </div>
         </transition>

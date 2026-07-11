@@ -40,7 +40,7 @@ watch(() => props.sceneGraphVersion, () => {
   loadData();
 });
 
-const loadData = () => {
+function loadData() {
   const data = LabelEditorPlugin.loadData() as LabelPluginState;
   pluginState.value = data && Array.isArray(data.labels) ? data : { labels: [] };
   LabelCorePlugin.setState(JSON.parse(JSON.stringify(pluginState.value)));
