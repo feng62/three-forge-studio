@@ -140,8 +140,8 @@ function handleSaveLogic(logic: VisualLogicGraph) {
         <div 
           v-for="logic in pluginState.logics" 
           :key="logic.id"
-          class="flex items-center justify-between p-2 rounded cursor-pointer border transition-colors"
-          :class="pluginState.activeLogicId === logic.id ? 'bg-primary/20 border-primary text-primary' : 'bg-bg-surface border-border hover:border-primary/50 text-text-main'"
+          class="flex items-center justify-between p-2 rounded cursor-pointer border transition-all duration-200"
+          :class="pluginState.activeLogicId === logic.id ? 'bg-primary text-white border-primary shadow-[0_4px_12px_rgba(var(--el-color-primary-rgb),0.5)] z-10 relative' : 'bg-bg-surface border-border hover:border-primary/50'"
           @click="selectLogic(logic.id)"
         >
           <LogicListItem :logic="logic" @edit="handleEdit" @delete="handleDelete" @save-logic="handleSaveLogic" />

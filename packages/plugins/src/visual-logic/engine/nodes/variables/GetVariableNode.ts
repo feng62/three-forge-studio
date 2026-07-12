@@ -6,7 +6,7 @@ import { globalVars } from '../../variables';
 export class GetVariableNode extends ClassicPreset.Node {
   width = 200;
   height = 120;
-  logColor = '#f59e0b'; // 橙色
+  logColor = '#f97316';
 
   public onNodeUpdate?: () => void;
   public onControlUpdate?: (key: string) => void;

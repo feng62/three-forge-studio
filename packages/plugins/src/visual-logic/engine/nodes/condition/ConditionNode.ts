@@ -10,7 +10,7 @@ const BOOL_OPTIONS: SelectOption[] = [
 export class ConditionNode extends ClassicPreset.Node {
   width = 260;
   height = 220;
-  logColor = '#ef4444'; // 红色
+  logColor = '#ef4444';
 
   // 接收可选的 dataflow 引擎来支持运行时求值
   constructor(private dataflow?: any) {

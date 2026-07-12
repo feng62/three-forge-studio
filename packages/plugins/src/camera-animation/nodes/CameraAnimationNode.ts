@@ -7,7 +7,7 @@ import { CameraAnimationCorePlugin } from '../core';
 export class CameraAnimationNode extends ClassicPreset.Node {
   width = 240;
   height = 180;
-  logColor = '#10b981'; // 翡翠绿
+  logColor = '#a855f7';
 
   public onControlUpdate?: (key: string) => void;
 

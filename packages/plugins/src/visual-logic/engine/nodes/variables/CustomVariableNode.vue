@@ -1,20 +1,63 @@
 <template>
   <div 
-    class="bg-[#252526] border border-[#3f3f46] rounded-[40px] cursor-pointer box-border py-1 pr-3 pl-4 relative select-none shadow-md transition-all duration-200 hover:bg-[#3f3f46] hover:border-zinc-500" 
-    :class="[data.selected ? '!border-amber-500 shadow-[0_0_0_2px_rgba(245,158,11,0.3)]' : '']" 
+    class="bg-slate-900/85 backdrop-blur-[12px] border border-[#34C759]/30 rounded-xl cursor-pointer box-border relative select-none shadow-[0_4px_20px_rgba(52,199,89,0.4),inset_0_0_15px_rgba(52,199,89,0.05)] transition-all duration-300 ease-out hover:shadow-[0_8px_30px_rgba(52,199,89,0.6),inset_0_0_20px_rgba(52,199,89,0.1)] hover:border-[#34C759]/60 hover:-translate-y-[2px]" 
+    :class="[data.selected ? '!border-[#34C759] shadow-[0_0_0_2px_rgba(52,199,89,0.4),0_8px_30px_rgba(52,199,89,0.6)]' : '']" 
     :style="nodeStyles()" 
     data-testid="node"
   >
-    <!-- Variables only have outputs and controls -->
-    <div class="flex items-center justify-between h-full gap-2">
-      <div class="flex gap-1 items-center flex-1">
-        <RefComponent class="inline-block" v-for="[key, control] in controls()" :key="'control' + key + seed" :emit="props.emit"
+    <!-- Header with Icon -->
+    <div class="flex items-center bg-gradient-to-r from-[#34C759]/15 to-[#34C759]/5 border-b border-[#34C759]/20 px-[14px] py-[10px] gap-[10px] rounded-t-xl">
+      <div class="w-6 h-6 text-[#34C759] flex items-center justify-center">
+        <!-- SVG Gear Icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full drop-shadow-[0_0_4px_rgba(52,199,89,0.6)]"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+      </div>
+      <div class="text-[#34C759] font-sans text-[15px] font-semibold tracking-wide uppercase" data-testid="title">{{ data.label }}</div>
+    </div>
+    
+    <div class="pt-3 pb-4 px-0">
+      <!-- 1. Execution Lines at the top -->
+      <div class="flex justify-between w-full mb-3" v-if="execInputs().length > 0 || execOutputs().length > 0">
+        <div class="flex flex-col items-start">
+          <div class="flex items-center min-h-[32px] w-full justify-start" v-for="[key, input] in execInputs()" :key="'input' + key + seed" :data-testid="'input-' + key">
+            <RefComponent class="-ml-3 mr-2 inline-block" :emit="props.emit"
+              :data="{ type: 'socket', side: 'input', key: key, nodeId: data.id, payload: input.socket }"
+              data-testid="input-socket" />
+            <div class="text-slate-300 font-sans text-[13px] font-medium">{{ input.label }}</div>
+          </div>
+        </div>
+        <div class="flex flex-col items-end">
+          <div class="flex items-center min-h-[32px] w-full justify-end" v-for="[key, output] in execOutputs()" :key="'output' + key + seed" :data-testid="'output-' + key">
+            <div class="text-slate-300 font-sans text-[13px] font-medium">{{ output.label }}</div>
+            <RefComponent class="-mr-3 ml-2 inline-block" :emit="props.emit"
+              :data="{ type: 'socket', side: 'output', key: key, nodeId: data.id, payload: output.socket }"
+              data-testid="output-socket" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Controls in the middle -->
+      <div class="px-3 my-2" v-if="controls().length > 0">
+        <RefComponent class="py-1 w-full box-border" v-for="[key, control] in controls()" :key="'control' + key + seed" :emit="props.emit"
           :data="{ type: 'control', payload: control }" :data-testid="'control-' + key" />
       </div>
-      <div class="flex items-center justify-end">
-        <div class="flex items-center" v-for="[key, output] in outputs()" :key="'output' + key + seed" :data-testid="'output-' + key">
-          <!-- We don't need output title for pill node, just the socket -->
-          <RefComponent class="text-right -mr-[10px] inline-block" :emit="props.emit"
+
+      <!-- 3. Data Inputs -->
+      <div class="data-inputs" v-if="dataInputs().length > 0">
+        <div class="flex items-center min-h-[32px] w-full justify-start" v-for="[key, input] in dataInputs()" :key="'input' + key + seed" :data-testid="'input-' + key">
+          <RefComponent class="-ml-3 mr-2 inline-block" :emit="props.emit"
+            :data="{ type: 'socket', side: 'input', key: key, nodeId: data.id, payload: input.socket }"
+            data-testid="input-socket" />
+          <div class="text-slate-300 font-sans text-[13px] font-medium" v-if="!input.control || !input.showControl" data-testid="input-title">{{ input.label }}</div>
+          <RefComponent class="z-10 grow mr-3" v-if="input.control && input.showControl" :emit="props.emit"
+            :data="{ type: 'control', payload: input.control }" data-testid="input-control" />
+        </div>
+      </div>
+
+      <!-- 4. Data Outputs -->
+      <div class="data-outputs" v-if="dataOutputs().length > 0">
+        <div class="flex items-center min-h-[32px] w-full justify-end" v-for="[key, output] in dataOutputs()" :key="'output' + key + seed" :data-testid="'output-' + key">
+          <div class="text-slate-300 font-sans text-[13px] font-medium" data-testid="output-title">{{ output.label }}</div>
+          <RefComponent class="-mr-3 ml-2 inline-block" :emit="props.emit"
             :data="{ type: 'socket', side: 'output', key: key, nodeId: data.id, payload: output.socket }"
             data-testid="output-socket" />
         </div>
@@ -43,20 +86,49 @@ function sortByIndex(entries: any[]) {
 
 function nodeStyles() {
   return {
-    width: Number.isFinite(props.data.width) ? `${props.data.width}px` : '',
-    height: Number.isFinite(props.data.height) ? `${props.data.height}px` : ''
+    width: Number.isFinite(props.data.width) ? `${props.data.width}px` : '240px',
+    height: 'auto',
   };
+}
+
+function allInputs() {
+  return sortByIndex(Object.entries(props.data.inputs || {}));
+}
+
+function allOutputs() {
+  return sortByIndex(Object.entries(props.data.outputs || {}));
+}
+
+function execInputs() {
+  return allInputs().filter(([_, input]) => input?.socket?.name === 'execution');
+}
+
+function dataInputs() {
+  return allInputs().filter(([_, input]) => input?.socket?.name !== 'execution');
+}
+
+function execOutputs() {
+  return allOutputs().filter(([_, output]) => output?.socket?.name === 'execution');
+}
+
+function dataOutputs() {
+  return allOutputs().filter(([_, output]) => output?.socket?.name !== 'execution');
 }
 
 function controls() {
   return sortByIndex(Object.entries(props.data.controls || {}));
 }
-
-function outputs() {
-  return sortByIndex(Object.entries(props.data.outputs || {}));
-}
-
-function dataOutputs() {
-  return outputs().filter(([_, output]) => output?.socket?.name !== 'execution');
-}
 </script>
+
+<style scoped>
+/* Scoped styles for select elements within this component */
+:deep(.select-control select) {
+  background: rgba(52,199,89, 0.6) !important;
+  border: 1px solid rgba(52,199,89, 0.4) !important;
+  color: #38bdf8 !important;
+  font-weight: 600;
+}
+:deep(.select-control select:focus) {
+  box-shadow: 0 0 0 2px rgba(52,199,89, 0.2) !important;
+}
+</style>

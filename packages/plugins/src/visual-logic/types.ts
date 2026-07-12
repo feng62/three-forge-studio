@@ -7,6 +7,7 @@ export interface VisualLogicGraph {
   nodes: any[];
   connections: any[];
   variables?: any[];
+  transform?: { x: number; y: number; k: number };
 }
 
 /**

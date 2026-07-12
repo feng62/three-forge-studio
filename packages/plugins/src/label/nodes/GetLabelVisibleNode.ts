@@ -7,7 +7,7 @@ import { LabelCorePlugin } from '../core';
 export class GetLabelVisibleNode extends ClassicPreset.Node {
   width = 240;
   height = 140;
-  logColor = '#3b82f6';
+  logColor = '#10b981';
 
   public onControlUpdate?: (key: string) => void;
 

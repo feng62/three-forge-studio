@@ -12,7 +12,7 @@ const BOOL_OPTIONS: SelectOption[] = [
 export class SetLabelVisibleNode extends ClassicPreset.Node {
   width = 280;
   height = 230;
-  logColor = '#3b82f6';
+  logColor = '#10b981';
 
   public onControlUpdate?: (key: string) => void;
 

@@ -11,7 +11,7 @@ const SYSTEM_ACTIONS: SelectOption[] = [
 export class SystemActionNode extends ClassicPreset.Node {
   width = 240;
   height = 180;
-  logColor = '#3b82f6'; // 蓝色
+  logColor = '#f59e0b';
 
   constructor() {
     super('系统动作节点');

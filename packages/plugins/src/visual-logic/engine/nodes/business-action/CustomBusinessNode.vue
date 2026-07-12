@@ -1,20 +1,17 @@
 <template>
   <div 
-    class="bg-slate-900/85 backdrop-blur-[12px] border border-sky-400/30 rounded-xl cursor-pointer box-border relative select-none shadow-[0_4px_20px_rgba(0,122,255,0.4),inset_0_0_15px_rgba(0,122,255,0.05)] transition-all duration-300 ease-out hover:shadow-[0_8px_30px_rgba(0,122,255,0.6),inset_0_0_20px_rgba(0,122,255,0.1)] hover:border-sky-400/60 hover:-translate-y-[2px]" 
-    :class="[data.selected ? '!border-sky-400 shadow-[0_0_0_2px_rgba(0,122,255,0.4),0_8px_30px_rgba(0,122,255,0.6)]' : '']" 
+    class="bg-slate-900/85 backdrop-blur-[12px] border border-indigo-400/30 rounded-xl cursor-pointer box-border relative select-none shadow-[0_4px_20px_rgba(0,122,255,0.4),inset_0_0_15px_rgba(0,122,255,0.05)] transition-all duration-300 ease-out hover:shadow-[0_8px_30px_rgba(0,122,255,0.6),inset_0_0_20px_rgba(0,122,255,0.1)] hover:border-indigo-400/60 hover:-translate-y-[2px]" 
+    :class="[data.selected ? '!border-indigo-400 shadow-[0_0_0_2px_rgba(0,122,255,0.4),0_8px_30px_rgba(0,122,255,0.6)]' : '']" 
     :style="nodeStyles()" 
     data-testid="node"
   >
     <!-- Header with Icon -->
-    <div class="flex items-center bg-gradient-to-r from-sky-500/15 to-sky-500/5 border-b border-sky-400/20 px-[14px] py-[10px] gap-[10px] rounded-t-xl">
-      <div class="w-6 h-6 text-sky-400 flex items-center justify-center animate-[spin_8s_linear_infinite]">
+    <div class="flex items-center bg-gradient-to-r from-indigo-500/15 to-indigo-500/5 border-b border-indigo-400/20 px-[14px] py-[10px] gap-[10px] rounded-t-xl">
+      <div class="w-6 h-6 text-indigo-400 flex items-center justify-center">
         <!-- SVG Gear Icon -->
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full drop-shadow-[0_0_4px_rgba(0,122,255,0.6)]">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full drop-shadow-[0_0_4px_rgba(0,122,255,0.6)]"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
       </div>
-      <div class="text-sky-100 font-sans text-[15px] font-semibold tracking-wide uppercase" data-testid="title">{{ data.label }}</div>
+      <div class="text-indigo-100 font-sans text-[15px] font-semibold tracking-wide uppercase" data-testid="title">{{ data.label }}</div>
     </div>
     
     <div class="pt-3 pb-4 px-0">

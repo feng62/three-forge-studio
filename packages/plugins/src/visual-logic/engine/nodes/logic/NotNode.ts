@@ -4,7 +4,7 @@ import { BooleanSocket } from '../common/sockets';
 export class NotNode extends ClassicPreset.Node {
   width = 200;
   height = 130;
-  logColor = '#ef4444'; // 红色
+  logColor = '#06b6d4';
 
   constructor(private dataflow?: any) {
     super('逻辑取反');

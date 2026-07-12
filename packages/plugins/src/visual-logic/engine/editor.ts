@@ -5,6 +5,9 @@ import { VuePlugin, Presets, type VueArea2D } from 'rete-vue-plugin';
 import { ControlFlowEngine, DataflowEngine } from 'rete-engine';
 import { AutoArrangePlugin, Presets as ArrangePresets } from 'rete-auto-arrange-plugin';
 import { ContextMenuPlugin, Presets as ContextMenuPresets } from 'rete-context-menu-plugin';
+import CustomMenu from '../ui/context-menu/CustomMenu.vue';
+import CustomItem from '../ui/context-menu/CustomItem.vue';
+import CustomSearch from '../ui/context-menu/CustomSearch.vue';
 import { type MinimapExtra, MinimapPlugin } from 'rete-minimap-plugin';
 import { ReroutePlugin, type RerouteExtra, RerouteExtensions } from 'rete-connection-reroute-plugin';
 
@@ -84,8 +87,6 @@ export async function createControlFlowEditor(container: HTMLElement, onGraphSav
       }
     }
   }));
-  // @ts-ignore
-  render.addPreset(Presets.contextMenu.setup());
   render.addPreset(Presets.minimap.setup());
   // @ts-ignore
   // @ts-ignore
@@ -130,20 +131,56 @@ export async function createControlFlowEditor(container: HTMLElement, onGraphSav
     return context;
   });
 
-  // 动态生成右键菜单
-  const menuItems = NODE_REGISTRY.map(config => {
-    return [config.label, () => {
+  // 动态生成右键菜单，按 category 分组
+  const grouped: Record<string, [string, () => any][]> = {};
+  NODE_REGISTRY.forEach(config => {
+    const cat = config.category || '其它';
+    if (!grouped[cat]) {
+      grouped[cat] = [];
+    }
+    grouped[cat].push([config.label, () => {
       const n = config.factory({ engine, dataflow });
+      (n as any).category = cat; // Attach category for UI color mapping
       if (config.setupEditor) {
         config.setupEditor(n, area);
       }
       return n;
-    }] as [string, () => any];
+    }]);
   });
+
+  const menuItems = Object.keys(grouped).map(cat => {
+    return [cat, grouped[cat]];
+  }) as [string, any][];
 
   // @ts-ignore
   const contextMenu = new ContextMenuPlugin<Schemes>({
     items: ContextMenuPresets.classic.setup(menuItems),
+  });
+  // 自定义 Vue 右键菜单 Preset
+  render.addPreset({
+    update(context) {
+      if (context.data.type === 'contextmenu') {
+        return {
+          items: context.data.items,
+          delay: 50,
+          searchBar: context.data.searchBar,
+          onHide: context.data.onHide
+        };
+      }
+    },
+    render(context) {
+      if (context.data.type === 'contextmenu') {
+        return {
+          component: CustomMenu,
+          props: {
+            items: context.data.items,
+            delay: 50,
+            searchBar: context.data.searchBar,
+            onHide: context.data.onHide
+          }
+        };
+      }
+    }
   });
   // @ts-ignore
   area.use(contextMenu);
@@ -192,7 +229,8 @@ export async function createControlFlowEditor(container: HTMLElement, onGraphSav
         target: c.target,
         targetInput: c.targetInput
       })),
-      variables: [...globalVars.variables] // 深拷贝防止引用污染
+      variables: [...globalVars.variables], // 深拷贝防止引用污染
+      transform: area.area.transform
     };
   };
 
@@ -217,6 +255,7 @@ export async function createControlFlowEditor(container: HTMLElement, onGraphSav
           console.error(`[VisualLogic] 找不到节点定义: ${n.name}`);
           continue;
         }
+        (node as any).category = config?.category || '其它';
 
         try {
           node.id = n.id;
@@ -290,6 +329,20 @@ export async function createControlFlowEditor(container: HTMLElement, onGraphSav
           await editor.addConnection(conn);
         }
       }
+
+      // 恢复画布缩放与平移状态
+      if (data.transform) {
+        await area.area.translate(data.transform.x, data.transform.y);
+        await area.area.zoom(data.transform.k);
+      } else {
+        // 如果没有保存的视图状态，则尝试自动聚焦到所有节点，或者重置到原点
+        if (editor.getNodes().length > 0) {
+          AreaExtensions.zoomAt(area, editor.getNodes());
+        } else {
+          await area.area.translate(0, 0);
+          await area.area.zoom(1);
+        }
+      }
     } catch (e) {
       console.error('Failed to import JSON', e);
     }
@@ -303,6 +356,15 @@ export async function createControlFlowEditor(container: HTMLElement, onGraphSav
     const existingNodes = [...editor.getNodes()];
     for (const n of existingNodes) {
       await editor.removeNode(n.id);
+    }
+  };
+
+  const centerView = async () => {
+    if (editor.getNodes().length > 0) {
+      await AreaExtensions.zoomAt(area, editor.getNodes());
+    } else {
+      await area.area.translate(0, 0);
+      await area.area.zoom(1);
     }
   };
 
@@ -330,6 +392,7 @@ export async function createControlFlowEditor(container: HTMLElement, onGraphSav
     getGraphData,
     importGraphData,
     clearCanvas,
+    centerView,
     area,
     engine,
     dataflow

@@ -5,7 +5,7 @@ import { ExecutionSocket } from '../common/sockets';
 export class DelayNode extends ClassicPreset.Node {
   width = 240;
   height = 160;
-  logColor = '#f59e0b'; // 橙色/琥珀色
+  logColor = '#6366f1';
 
   public onControlUpdate?: (key: string) => void;
 

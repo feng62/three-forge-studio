@@ -16,7 +16,7 @@ export class SetVariableNode extends ClassicPreset.Node {
   // 节点的固定高度
   height = 180;
   // 控制台打印该节点日志时使用的颜色（橙色）
-  logColor = '#f59e0b'; // 橙色
+  logColor = '#f97316';
 
   // 节点更新时的回调函数，可选
   public onNodeUpdate?: () => void;

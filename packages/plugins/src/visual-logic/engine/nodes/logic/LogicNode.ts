@@ -16,7 +16,7 @@ const LOGIC_OPERATORS: SelectOption[] = [
 export class LogicNode extends ClassicPreset.Node {
   width = 240;
   height = 200;
-  logColor = '#3b82f6'; // 蓝色
+  logColor = '#06b6d4';
 
   constructor(private dataflow?: any) {
     super('逻辑运算');

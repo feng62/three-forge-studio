@@ -11,7 +11,7 @@ const BIZ_ACTIONS: SelectOption[] = [
 export class BusinessActionNode extends ClassicPreset.Node {
   width = 260;
   height = 260;
-  logColor = '#10b981'; // 绿色
+  logColor = '#f59e0b';
 
   constructor() {
     super('业务动作节点');

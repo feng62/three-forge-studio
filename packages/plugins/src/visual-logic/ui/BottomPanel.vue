@@ -23,15 +23,39 @@ const toggleFullScreen = () => {
 
 const reteContainer = ref<HTMLElement | null>(null);
 let reteApp: any = null;
-let isUpdatingFromExternal = false; // Prevent recursive saves
+const isUpdatingFromExternal = ref(false); // Prevent recursive saves and show loading
+let resizeObserver: ResizeObserver | null = null;
+let hasCenteredView = false;
 
 onMounted(async () => {
   window.addEventListener('visual-logic-request-save', handleManualSave);
   window.addEventListener('keydown', handleKeyDown);
   
   if (reteContainer.value) {
+    let resizeTimer: any = null;
+    resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+          if (!hasCenteredView) {
+            // Use debounce to wait for CSS transitions (e.g. tab switching animation) to finish
+            if (resizeTimer) clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+              if (reteApp && visualLogicState.value.activeLogicId) {
+                hasCenteredView = true;
+                // Once the container reaches its final size and nodes are rendered, center the view
+                reteApp.centerView();
+              }
+            }, 300);
+          }
+        } else {
+          hasCenteredView = false;
+          if (resizeTimer) clearTimeout(resizeTimer);
+        }
+      }
+    });
+    resizeObserver.observe(reteContainer.value);
     reteApp = await createControlFlowEditor(reteContainer.value, (data) => {
-      if (isUpdatingFromExternal) return;
+      if (isUpdatingFromExternal.value) return;
       
       const activeId = visualLogicState.value.activeLogicId;
       if (!activeId) return;
@@ -59,6 +83,10 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   window.removeEventListener('visual-logic-request-save', handleManualSave);
   window.removeEventListener('keydown', handleKeyDown);
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
   if (reteApp) {
     reteApp.destroy();
     reteApp = null;
@@ -111,7 +139,7 @@ async function loadActiveLogic() {
   
   const logic = visualLogicState.value.logics.find(l => l.id === activeId);
   if (logic) {
-    isUpdatingFromExternal = true;
+    isUpdatingFromExternal.value = true;
     try {
       await reteApp.importGraphData({
         nodes: logic.nodes || [],
@@ -119,10 +147,10 @@ async function loadActiveLogic() {
         variables: logic.variables || []
       });
       // Delay reset to avoid catching subsequent async events
-      setTimeout(() => { isUpdatingFromExternal = false; }, 100);
+      setTimeout(() => { isUpdatingFromExternal.value = false; }, 100);
     } catch (e) {
       console.error(e);
-      isUpdatingFromExternal = false;
+      isUpdatingFromExternal.value = false;
     }
   }
 }
@@ -150,6 +178,9 @@ async function loadActiveLogic() {
       class="flex-1 bg-black/20 overflow-hidden relative" 
       style="background-image: radial-gradient(var(--el-border-color) 1px, transparent 0); background-size: 20px 20px;"
       ref="reteContainer"
+      v-loading="isUpdatingFromExternal"
+      element-loading-background="rgba(0, 0, 0, 0.4)"
+      element-loading-text="正在加载蓝图..."
     >
       <div v-if="!visualLogicState.activeLogicId" class="absolute inset-0 flex items-center justify-center text-text-muted pointer-events-none z-10">
         <div class="text-center bg-bg-base/80 p-4 rounded-lg backdrop-blur">
@@ -160,3 +191,5 @@ async function loadActiveLogic() {
     </div>
   </div>
 </template>
+
+
