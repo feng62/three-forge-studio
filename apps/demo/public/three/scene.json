@@ -5,7 +5,7 @@
   },
   "project": {
     "name": "新的场景",
-    "createdAt": 1783096110640
+    "createdAt": 1783846437927
   },
   "settings": {},
   "scene": {
@@ -29,8 +29,215 @@
       0,
       1
     ],
-    "background": 988970,
+    "background": "d69780bb-a06f-4fb0-8a27-10c9043686e6",
     "environment": "af131515-3c66-4dcb-b4fe-784d651395a4",
+    "userData": {
+      "visualLogic": {
+        "logics": [
+          {
+            "id": "logic_1783782938901",
+            "name": "111",
+            "nodes": [
+              {
+                "id": "188996b144d4e6aa",
+                "name": "交互触发器",
+                "controls": {
+                  "eventType": "click",
+                  "targetModel": "{\"uuid\":\"017f27fc-5469-4bd9-a010-e148692ca4a4\",\"path\":\"0/2/1\",\"name\":\"Cube003\"}"
+                },
+                "position": {
+                  "x": 367.05498038356615,
+                  "y": 523.7429748099775
+                }
+              },
+              {
+                "id": "9bc9bcca8ae6a9b5",
+                "name": "系统动作节点",
+                "controls": {
+                  "sysAction": "write_log"
+                },
+                "position": {
+                  "x": 1045.7798104891613,
+                  "y": 383.3170144995016
+                }
+              },
+              {
+                "id": "b1366725faf85e11",
+                "name": "播放视角动画",
+                "controls": {
+                  "viewpoint": "b48d6516-66cb-4f5a-8acb-30f28f94b600"
+                },
+                "position": {
+                  "x": 660.0690772985862,
+                  "y": 874.9036198698282
+                }
+              },
+              {
+                "id": "d7a48781c34d5e03",
+                "name": "播放视角动画",
+                "controls": {
+                  "viewpoint": "27365e96-1f12-4d34-8746-9ab288c2f28d"
+                },
+                "position": {
+                  "x": 1349.5484778037803,
+                  "y": 680.5967166383978
+                }
+              },
+              {
+                "id": "e3e63102c75add9a",
+                "name": "播放视角动画",
+                "controls": {
+                  "viewpoint": "681525c4-281c-43d0-8902-c6d672119ee3"
+                },
+                "position": {
+                  "x": 1269.5635964765638,
+                  "y": 1003.2070736500157
+                }
+              },
+              {
+                "id": "0093a822206aeba4",
+                "name": "延时节点",
+                "controls": {
+                  "delayTime": "2000"
+                },
+                "position": {
+                  "x": 930.9293062067984,
+                  "y": 699.0021082309695
+                }
+              }
+            ],
+            "edges": [],
+            "connections": [
+              {
+                "id": "ee86137e180d322b",
+                "source": "188996b144d4e6aa",
+                "sourceOutput": "exec",
+                "target": "9bc9bcca8ae6a9b5",
+                "targetInput": "execIn"
+              },
+              {
+                "id": "40969f0a6975c0fe",
+                "source": "188996b144d4e6aa",
+                "sourceOutput": "exec",
+                "target": "b1366725faf85e11",
+                "targetInput": "execIn"
+              },
+              {
+                "id": "0eba16555d35e40c",
+                "source": "d7a48781c34d5e03",
+                "sourceOutput": "after",
+                "target": "e3e63102c75add9a",
+                "targetInput": "execIn"
+              },
+              {
+                "id": "b8bd8afa6f78acb8",
+                "source": "b1366725faf85e11",
+                "sourceOutput": "after",
+                "target": "0093a822206aeba4",
+                "targetInput": "execIn"
+              },
+              {
+                "id": "e0491ccf9bd9123b",
+                "source": "0093a822206aeba4",
+                "sourceOutput": "execOut",
+                "target": "d7a48781c34d5e03",
+                "targetInput": "execIn"
+              }
+            ],
+            "variables": [
+              {
+                "id": "var_ulpo9a41u",
+                "name": "NewVar_1",
+                "type": "number",
+                "initialValue": 0
+              },
+              {
+                "id": "var_knl8fwduf",
+                "name": "NewVar_2",
+                "type": "number",
+                "initialValue": 0
+              }
+            ]
+          },
+          {
+            "id": "logic_1783782952251",
+            "name": "222",
+            "nodes": [
+              {
+                "id": "c17ebb76274ccb9d",
+                "name": "交互触发器",
+                "controls": {
+                  "eventType": "click",
+                  "targetModel": "{\"uuid\":\"017f27fc-5469-4bd9-a010-e148692ca4a4\",\"path\":\"0/2/0\",\"name\":\"Cube002\"}"
+                },
+                "position": {
+                  "x": 104.10876864956485,
+                  "y": -158.57983116683437
+                }
+              },
+              {
+                "id": "3cba698293391db6",
+                "name": "获取标签显示状态",
+                "controls": {
+                  "labelId": "85576b93-66da-46f8-b94d-bfa21516983b"
+                },
+                "position": {
+                  "x": 40.52812071330591,
+                  "y": 350.3717421124829
+                }
+              },
+              {
+                "id": "f48054aedbc1d0b3",
+                "name": "逻辑取反",
+                "controls": {},
+                "position": {
+                  "x": 350.2976680384088,
+                  "y": 354.16735253772293
+                }
+              },
+              {
+                "id": "d9e2ff9146f3747f",
+                "name": "设置标签显示状态",
+                "controls": {
+                  "labelId": "85576b93-66da-46f8-b94d-bfa21516983b",
+                  "input_visibleIn": "true"
+                },
+                "position": {
+                  "x": 641.3333468967014,
+                  "y": -48.44445122612848
+                }
+              }
+            ],
+            "edges": [],
+            "connections": [
+              {
+                "id": "b68afd1646ee2302",
+                "source": "3cba698293391db6",
+                "sourceOutput": "isVisible",
+                "target": "f48054aedbc1d0b3",
+                "targetInput": "boolIn"
+              },
+              {
+                "id": "063a8a7e1e441de4",
+                "source": "c17ebb76274ccb9d",
+                "sourceOutput": "exec",
+                "target": "d9e2ff9146f3747f",
+                "targetInput": "execIn"
+              },
+              {
+                "id": "9b120321367a65be",
+                "source": "f48054aedbc1d0b3",
+                "sourceOutput": "boolOut",
+                "target": "d9e2ff9146f3747f",
+                "targetInput": "visibleIn"
+              }
+            ],
+            "variables": []
+          }
+        ],
+        "activeLogicId": "logic_1783782952251"
+      }
+    },
     "children": [
       {
         "uuid": "9ce81d8b-3391-4a63-9e89-da86072d4f85",
@@ -111,21 +318,21 @@
         "uuid": "50dca877-6774-4385-81ad-f7f59083715c",
         "type": "PerspectiveCamera",
         "matrix": [
-          0.9043681263895096,
-          -1.3877787807814426e-17,
-          -0.42675319796191746,
+          -0.043441193016018925,
+          -2.7755575615628578e-17,
+          0.999055985793249,
           0,
-          -0.1690265729519944,
-          0.9182178594312282,
-          -0.3581982415613346,
+          0.4791164851768448,
+          0.8775040611353017,
+          0.020833058412835743,
           0,
-          0.39185240793802384,
-          0.3960757031446489,
-          0.8304069651512076,
+          -0.8766756848351114,
+          0.47956920531977715,
+          -0.03811982329211916,
           0,
-          10.926232910107105,
-          11.629643030695778,
-          13.330507500229306,
+          -16.786038029288754,
+          13.097555301565453,
+          -4.835239661789691,
           1
         ],
         "name": "MainCamera",
@@ -134,9 +341,9 @@
         "far": 1000,
         "userData": {
           "orbitTarget": {
-            "x": 2.3908334009618457,
-            "y": 3.0022509470419427,
-            "z": -4.7575661192224645
+            "x": 2.3098691501471373,
+            "y": 2.651492761773746,
+            "z": -4.004906826198701
           }
         }
       },
@@ -209,34 +416,6 @@
             }
           }
         }
-      },
-      {
-        "uuid": "41ba137e-3bdc-44cd-8a07-206f63d36c62",
-        "type": "ExternalModel",
-        "matrix": [
-          1,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          0,
-          0,
-          0,
-          1,
-          0,
-          -4,
-          0,
-          -4.339135315787803,
-          1
-        ],
-        "name": "卫星_205",
-        "extensions": {
-          "core_external_model": {
-            "id": "0e1f21d2-bd9e-4ec9-981d-e37e8f34c254"
-          }
-        }
       }
     ]
   },
@@ -245,9 +424,49 @@
     "materials": [],
     "textures": [
       {
+        "uuid": "d69780bb-a06f-4fb0-8a27-10c9043686e6",
+        "name": "sIBL-Bryant_Park_2k",
+        "image": "2a2132f7-9a5f-46dc-92ac-b47b72dbcad0",
+        "mapping": 303,
+        "channel": 0,
+        "repeat": [
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0
+        ],
+        "center": [
+          0,
+          0
+        ],
+        "rotation": 0,
+        "wrap": [
+          1001,
+          1001
+        ],
+        "format": 1023,
+        "internalFormat": null,
+        "type": 1016,
+        "normalized": false,
+        "colorSpace": "srgb-linear",
+        "minFilter": 1006,
+        "magFilter": 1006,
+        "anisotropy": 1,
+        "flipY": true,
+        "generateMipmaps": false,
+        "premultiplyAlpha": false,
+        "unpackAlignment": 1,
+        "userData": {
+          "previewUrl": null,
+          "dbId": "7becbcc4-06e7-442b-9ae8-29616bb1beb8"
+        }
+      },
+      {
         "uuid": "af131515-3c66-4dcb-b4fe-784d651395a4",
         "name": "sIBL-Bryant_Park_2k",
-        "image": "bd30eca0-c418-4681-a828-2a804653bf9c",
+        "image": "7fffbcc9-9f65-47ba-bc29-97b2d4fd9607",
         "mapping": 303,
         "channel": 0,
         "repeat": [
@@ -287,7 +506,11 @@
     ],
     "images": [
       {
-        "uuid": "bd30eca0-c418-4681-a828-2a804653bf9c",
+        "uuid": "2a2132f7-9a5f-46dc-92ac-b47b72dbcad0",
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+      },
+      {
+        "uuid": "7fffbcc9-9f65-47ba-bc29-97b2d4fd9607",
         "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
       }
     ],
@@ -400,32 +623,21 @@
       "events": {
         "click": [
           {
-            "uuid": "9d8dfcae-56b3-421f-989f-4d9fe7b9681b",
-            "name": "Sphere_872"
-          },
-          {
-            "uuid": "017f27fc-5469-4bd9-a010-e148692ca4a4",
-            "path": "0/0",
-            "name": "Cube"
-          },
-          {
             "uuid": "017f27fc-5469-4bd9-a010-e148692ca4a4",
             "path": "0/1",
             "name": "Cube001"
           },
           {
             "uuid": "017f27fc-5469-4bd9-a010-e148692ca4a4",
-            "path": "0/2/2",
-            "name": "Cube004"
-          }
-        ],
-        "dblclick": [
+            "path": "0/2/1",
+            "name": "Cube003"
+          },
           {
-            "uuid": "9d8dfcae-56b3-421f-989f-4d9fe7b9681b",
-            "name": "Sphere_872"
+            "uuid": "017f27fc-5469-4bd9-a010-e148692ca4a4",
+            "path": "0/2/0",
+            "name": "Cube002"
           }
-        ],
-        "contextmenu": []
+        ]
       }
     },
     "Labels": {
@@ -442,7 +654,7 @@
           "targetModelUuid": "017f27fc-5469-4bd9-a010-e148692ca4a4",
           "offset": [
             0,
-            0,
+            2,
             0
           ],
           "renderType": "vue",
@@ -456,7 +668,8 @@
           "files": {
             "/App.vue": "<template>\n  <div class=\"forge-label-wrapper\">\n    <div class=\"header\">\n      <span class=\"status-dot\"></span>\n      {{ model ? model.name : '未绑定模型' }}\n    </div>\n    <div class=\"uuid\">\n      UUID: {{ model ? model.uuid.substring(0,8) : 'N/A' }}\n    </div>\n     <!-- 展示传入的 model 数据 -->\n    <div class=\"model-info\" v-if=\"model\">\n      <p><strong>绑定模型：</strong>{{ model.name || '未命名' }}</p>\n      <p><strong>UUID：</strong>{{ model.uuid.substring(0, 8) }}...</p>\n    </div>\n    <div class=\"model-info\" v-else>\n      <p>未绑定任何模型</p>\n    </div>\n    <button class=\"action-btn\" @click=\"increment\">\n      点击次数：{{ count }}\n    </button>\n    <!-- 你可以在这里引入其他组件: -->\n    <Child />\n  </div>\n</template>\n\n<script>\n\nimport { ref, onMounted } from 'vue'\nexport default {\n  name: 'SetupComponent',\n  // 在这里声明 props 来接收外部传入的 model\n  props: {\n    model: {\n      type: Object,\n      default: null\n    }\n  },\n  setup(props, context) {\n    const count = ref(0)\n    const increment = () => {\n      count.value++\n    }\n    onMounted(() => {\n      console.log('组件已挂载')\n      if (props.model) {\n        console.log('获取到了绑定的 3D 模型:', props.model)\n      } else {\n        console.log('当前没有任何模型绑定。')\n      }\n    })\n    return {\n      count,\n      increment\n    }\n  }\n}\n</script>\n\n<style>\n.forge-label-wrapper {\n\n\n  \n  background: rgba(15,23,42,0.85);\n  color: #f8fafc;\n  padding: 8px 12px;\n  border-radius: 6px;\n  font-size: 12px;\n  border: 1px solid #3b82f6;\n  backdrop-filter: blur(4px);\n  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);\n  pointer-events: auto;\n}\n.forge-label-wrapper .header {\n  font-weight: bold;\n  margin-bottom: 4px;\n  color: #60a5fa;\n  display: flex;\n  align-items: center;\n  gap: 4px;\n}\n.forge-label-wrapper .status-dot {\n  display: inline-block;\n  width: 6px;\n  height: 6px;\n  border-radius: 50%;\n  background: #10b981;\n}\n.forge-label-wrapper .uuid {\n  color: #94a3b8;\n  font-size: 10px;\n  font-family: monospace;\n}\n</style>",
             "/Child.vue": "<template>\n  <div class=\"child-comp\">New Component</div>\n</template>\n\n<script setup>\n</script>\n\n<style scoped>\n.child-comp {\n  color: #fbbf24;\n}\n</style>"
-          }
+          },
+          "occluded": true
         },
         {
           "id": "63a9223c-7fe3-4d60-8bbc-b36ebbfad94d",
@@ -489,12 +702,217 @@
           "fixedRotation": false
         }
       ]
+    },
+    "Forge_VisualLogic": {
+      "logics": [
+        {
+          "id": "logic_1783782938901",
+          "name": "111",
+          "nodes": [
+            {
+              "id": "188996b144d4e6aa",
+              "name": "交互触发器",
+              "controls": {
+                "eventType": "click",
+                "targetModel": "{\"uuid\":\"017f27fc-5469-4bd9-a010-e148692ca4a4\",\"path\":\"0/2/1\",\"name\":\"Cube003\"}"
+              },
+              "position": {
+                "x": 367.05498038356615,
+                "y": 523.7429748099775
+              }
+            },
+            {
+              "id": "9bc9bcca8ae6a9b5",
+              "name": "系统动作节点",
+              "controls": {
+                "sysAction": "write_log"
+              },
+              "position": {
+                "x": 1045.7798104891613,
+                "y": 383.3170144995016
+              }
+            },
+            {
+              "id": "b1366725faf85e11",
+              "name": "播放视角动画",
+              "controls": {
+                "viewpoint": "b48d6516-66cb-4f5a-8acb-30f28f94b600"
+              },
+              "position": {
+                "x": 660.0690772985862,
+                "y": 874.9036198698282
+              }
+            },
+            {
+              "id": "d7a48781c34d5e03",
+              "name": "播放视角动画",
+              "controls": {
+                "viewpoint": "27365e96-1f12-4d34-8746-9ab288c2f28d"
+              },
+              "position": {
+                "x": 1349.5484778037803,
+                "y": 680.5967166383978
+              }
+            },
+            {
+              "id": "e3e63102c75add9a",
+              "name": "播放视角动画",
+              "controls": {
+                "viewpoint": "681525c4-281c-43d0-8902-c6d672119ee3"
+              },
+              "position": {
+                "x": 1269.5635964765638,
+                "y": 1003.2070736500157
+              }
+            },
+            {
+              "id": "0093a822206aeba4",
+              "name": "延时节点",
+              "controls": {
+                "delayTime": "2000"
+              },
+              "position": {
+                "x": 930.9293062067984,
+                "y": 699.0021082309695
+              }
+            }
+          ],
+          "edges": [],
+          "connections": [
+            {
+              "id": "ee86137e180d322b",
+              "source": "188996b144d4e6aa",
+              "sourceOutput": "exec",
+              "target": "9bc9bcca8ae6a9b5",
+              "targetInput": "execIn"
+            },
+            {
+              "id": "40969f0a6975c0fe",
+              "source": "188996b144d4e6aa",
+              "sourceOutput": "exec",
+              "target": "b1366725faf85e11",
+              "targetInput": "execIn"
+            },
+            {
+              "id": "0eba16555d35e40c",
+              "source": "d7a48781c34d5e03",
+              "sourceOutput": "after",
+              "target": "e3e63102c75add9a",
+              "targetInput": "execIn"
+            },
+            {
+              "id": "b8bd8afa6f78acb8",
+              "source": "b1366725faf85e11",
+              "sourceOutput": "after",
+              "target": "0093a822206aeba4",
+              "targetInput": "execIn"
+            },
+            {
+              "id": "e0491ccf9bd9123b",
+              "source": "0093a822206aeba4",
+              "sourceOutput": "execOut",
+              "target": "d7a48781c34d5e03",
+              "targetInput": "execIn"
+            }
+          ],
+          "variables": [
+            {
+              "id": "var_ulpo9a41u",
+              "name": "NewVar_1",
+              "type": "number",
+              "initialValue": 0
+            },
+            {
+              "id": "var_knl8fwduf",
+              "name": "NewVar_2",
+              "type": "number",
+              "initialValue": 0
+            }
+          ]
+        },
+        {
+          "id": "logic_1783782952251",
+          "name": "222",
+          "nodes": [
+            {
+              "id": "c17ebb76274ccb9d",
+              "name": "交互触发器",
+              "controls": {
+                "eventType": "click",
+                "targetModel": "{\"uuid\":\"017f27fc-5469-4bd9-a010-e148692ca4a4\",\"path\":\"0/2/0\",\"name\":\"Cube002\"}"
+              },
+              "position": {
+                "x": 104.10876864956485,
+                "y": -158.57983116683437
+              }
+            },
+            {
+              "id": "3cba698293391db6",
+              "name": "获取标签显示状态",
+              "controls": {
+                "labelId": "85576b93-66da-46f8-b94d-bfa21516983b"
+              },
+              "position": {
+                "x": 40.52812071330591,
+                "y": 350.3717421124829
+              }
+            },
+            {
+              "id": "f48054aedbc1d0b3",
+              "name": "逻辑取反",
+              "controls": {},
+              "position": {
+                "x": 350.2976680384088,
+                "y": 354.16735253772293
+              }
+            },
+            {
+              "id": "d9e2ff9146f3747f",
+              "name": "设置标签显示状态",
+              "controls": {
+                "labelId": "85576b93-66da-46f8-b94d-bfa21516983b",
+                "input_visibleIn": "true"
+              },
+              "position": {
+                "x": 641.3333468967014,
+                "y": -48.44445122612848
+              }
+            }
+          ],
+          "edges": [],
+          "connections": [
+            {
+              "id": "b68afd1646ee2302",
+              "source": "3cba698293391db6",
+              "sourceOutput": "isVisible",
+              "target": "f48054aedbc1d0b3",
+              "targetInput": "boolIn"
+            },
+            {
+              "id": "063a8a7e1e441de4",
+              "source": "c17ebb76274ccb9d",
+              "sourceOutput": "exec",
+              "target": "d9e2ff9146f3747f",
+              "targetInput": "execIn"
+            },
+            {
+              "id": "9b120321367a65be",
+              "source": "f48054aedbc1d0b3",
+              "sourceOutput": "boolOut",
+              "target": "d9e2ff9146f3747f",
+              "targetInput": "visibleIn"
+            }
+          ],
+          "variables": []
+        }
+      ],
+      "activeLogicId": "logic_1783782952251"
     }
   },
   "forgeMetadata": {
     "version": "1.0",
     "compressed": true,
-    "quality": "low",
-    "timestamp": 1783096110703
+    "quality": "medium",
+    "timestamp": 1783846437960
   }
 }

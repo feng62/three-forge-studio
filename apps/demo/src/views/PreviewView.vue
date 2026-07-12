@@ -6,6 +6,7 @@ import { Engine } from '@forge/core'
 import PreviewViewpoints from '../components/preview/PreviewViewpoints.vue'
 import PreviewLabels from '../components/preview/PreviewLabels.vue'
 import PreviewInteraction from '../components/preview/PreviewInteraction.vue'
+import PreviewVisualLogic from '../components/preview/PreviewVisualLogic.vue'
 
 const router = useRouter()
 const container = ref<HTMLElement | null>(null)
@@ -104,6 +105,7 @@ onUnmounted(() => {
 
     <!-- 交互逻辑等无 UI 依赖的后台组件 -->
     <PreviewInteraction v-if="engineRef" :engine="engineRef" />
+    <PreviewVisualLogic v-if="engineRef" :engine="engineRef" />
 
     <!-- FPS 显示 (通过 render 钩子更新) -->
     <div class="absolute top-6 right-6 px-3 py-1 bg-black/50 backdrop-blur text-green-400 font-mono text-sm rounded-md shadow pointer-events-none z-50">

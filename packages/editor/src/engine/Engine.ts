@@ -14,6 +14,7 @@ export class Engine extends THREE.EventDispatcher<{ objectTransformChanged: { ty
   public camera: THREE.PerspectiveCamera
   public renderer: WebGPURenderer
   public orbitControls!: OrbitControls
+  public readonly isEditor = true
 
   // Managers
   public sceneManager: SceneManager

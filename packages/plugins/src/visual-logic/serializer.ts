@@ -1,5 +1,6 @@
 import type { ForgePlugin } from '@forge/types';
 import { Object3D } from 'three';
+import { VisualLogicCorePlugin } from './core';
 
 export class VisualLogicForgePlugin implements ForgePlugin {
   name = 'Forge_VisualLogic';
@@ -15,6 +16,7 @@ export class VisualLogicForgePlugin implements ForgePlugin {
   deserializeRoot(extensionData: any, scene: Object3D): void {
     if (extensionData) {
       scene.userData.visualLogic = extensionData;
+      VisualLogicCorePlugin.setState(extensionData);
     }
   }
 }

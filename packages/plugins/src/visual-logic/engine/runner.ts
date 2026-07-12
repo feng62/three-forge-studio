@@ -1,6 +1,6 @@
 import { NodeEditor } from 'rete';
 import { ControlFlowEngine, DataflowEngine } from 'rete-engine';
-import { TriggerNode, Connection, type Schemes, getProvinceLabel, getCityLabel } from './nodes/index';
+import { Connection, type Schemes } from './nodes/index';
 import { NODE_REGISTRY } from './nodes/registry';
 import type { SelectControl } from './nodes/common/SelectControl';
 import type { InputControl } from './nodes/common/InputControl';
@@ -24,19 +24,19 @@ export interface GraphData {
 /**
  * 无头执行引擎（Headless Engine）
  * 将前端可视化的 JSON 画布数据在纯逻辑层面上运行，脱离 UI 组件。
- * 
- * @param data 从页面或数据库传入的 JSON 画布数据
+ *
+ * @param workflows
  * @param payload 外部事件的荷载参数（例如当前发生的业务属于哪个省市）
+ * @param statesMap
  */
 export async function runHeadlessEngine(
   workflows: Array<{ id: string, name: string, data: GraphData }>, 
-  payload: { province: string, city: string },
+  payload: any,
   statesMap: Record<string, any> = {}
 ) {
   if (!Array.isArray(workflows)) {
     throw new Error('Invalid JSON format. Expected an array of workflows.');
   }
-
   let matchedAndExecuted = false;
   const executePromises: Promise<any>[] = [];
 
@@ -123,28 +123,46 @@ export async function runHeadlessEngine(
     }
 
     // 3. 寻找入口触发节点并尝试启动流程
-    const triggers = editor.getNodes().filter(n => n instanceof TriggerNode);
-    if (triggers.length === 0) {
+    const interactionTriggers = editor.getNodes().filter(n => (n as any).label === '交互触发器');
+
+    if (interactionTriggers.length === 0) {
       continue;
     }
 
-    for (const trigger of triggers) {
-      // 获取当前触发器配置的省市下拉框值
-      const provCtrl = trigger.controls['province'] as SelectControl;
-      const cityCtrl = trigger.controls['city'] as SelectControl;
-      
-      const provLabel = getProvinceLabel(provCtrl.value);
-      const cityLabel = getCityLabel(provCtrl.value, cityCtrl.value);
+    // 处理交互触发器
+    for (const trigger of interactionTriggers) {
+      if (payload?.type !== 'interaction') continue;
 
-      // 核心匹配逻辑：只有当外部传入的事件参数 (payload) 与画布中触发器节点配置的参数严格一致时，才会向下执行
-      if (provCtrl.value !== payload.province || cityCtrl.value !== payload.city) {
+      const eventTypeCtrl = trigger.controls['eventType'] as SelectControl;
+      const targetModelCtrl = trigger.controls['targetModel'] as SelectControl;
+      
+      const configuredEventType = eventTypeCtrl.value;
+      const configuredTargetJson = targetModelCtrl.value;
+      const receivedEvent = payload.interactionEvent;
+      
+      // 判断事件类型是否匹配
+      if (configuredEventType !== receivedEvent.eventType) {
         continue;
       }
 
-      console.log(`[COLOR:${trigger.logColor}] [TriggerNode] 🎯 匹配到流程【${wf.name}】，触发参数：【${provLabel}】【${cityLabel}】`);
-      // 一旦匹配成功，交由控制流引擎自动沿着连线往下执行后续逻辑节点
-      dataflow.reset();
+      // 判断目标模型是否匹配
+      if (configuredTargetJson) {
+        try {
+          const configuredTarget = JSON.parse(configuredTargetJson);
+          if (configuredTarget.uuid !== receivedEvent.ref.uuid || configuredTarget.path !== receivedEvent.ref.path) {
+             continue;
+          }
+        } catch (e) {
+          continue; // 解析错误则不触发
+        }
+      } else {
+        continue; // 若未配置目标则不触发
+      }
+
+      const logColor = (trigger as any).logColor || '#3b82f6';
+      console.log(`%c[🚀 触发节点] 🎯 匹配到流程【${wf.name}】，触发交互事件：【${configuredEventType}】`, `background: ${logColor}; color: #fff; font-size: 13px; padding: 4px; border-radius: 4px;`);
       
+      dataflow.reset();
       const execPromise = Promise.resolve(engine.execute(trigger.id));
       executePromises.push(execPromise);
       matchedAndExecuted = true;

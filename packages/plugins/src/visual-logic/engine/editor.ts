@@ -18,7 +18,7 @@ import CustomSocket from './nodes/common/CustomSocket.vue';
 import CustomConnection from './nodes/common/CustomConnection.vue';
 import { addCustomBackground } from './nodes/common/custom-background';
 
-import { TriggerNode, SystemActionNode, BusinessActionNode, GetVariableNode, SetVariableNode, ConditionNode, LogicNode, Connection, type Schemes, type Node } from './nodes/index';
+import { SystemActionNode, BusinessActionNode, GetVariableNode, SetVariableNode, ConditionNode, LogicNode, Connection, type Schemes, type Node } from './nodes/index';
 import { NODE_REGISTRY, getNodeComponent, createNodeFromName } from './nodes/registry';
 import { globalVars } from './variables';
 
@@ -211,28 +211,34 @@ export async function createControlFlowEditor(container: HTMLElement, onGraphSav
       
       const nodeMap = new Map<string, any>();
       for (const n of data.nodes) {
-        let node = createNodeFromName(n.name, { engine, dataflow });
-        if (!node) continue;
+        let config = NODE_REGISTRY.find(c => c.label === n.name || (c.aliases && c.aliases.includes(n.name)));
+        let node = config ? config.factory({ engine, dataflow }) : null;
+        if (!node) {
+          console.error(`[VisualLogic] 找不到节点定义: ${n.name}`);
+          continue;
+        }
 
-        node.id = n.id;
+        try {
+          node.id = n.id;
 
-        // 添加节点（必须先添加，再设值，否则触发更新时节点还不存在）
-        await editor.addNode(node);
-        nodeMap.set(n.id, node);
+          // 添加节点（必须先添加，再设值，否则触发更新时节点还不存在）
+          await editor.addNode(node);
+          nodeMap.set(n.id, node);
 
-        // 恢复事件绑定
-        if (node instanceof TriggerNode || node instanceof GetVariableNode || node instanceof SetVariableNode) {
-          node.onControlUpdate = (key: string) => {
-            const ctrl = node.controls[key];
-            if (ctrl) {
-              area.update('control', ctrl.id);
+          // 恢复事件绑定和特殊数据
+          if (config && config.setupEditor) {
+            config.setupEditor(node, area);
+            // 这里为了兼容之前的 triggerSave 逻辑
+            const originalOnControlUpdate = node.onControlUpdate;
+            node.onControlUpdate = (key: string) => {
+              if (originalOnControlUpdate) originalOnControlUpdate(key);
               triggerSave();
-            }
-          };
-        }
-        if (node instanceof GetVariableNode || node instanceof SetVariableNode) {
-          node.onNodeUpdate = () => area.update('node', node.id);
-        }
+            };
+          }
+
+          if (config && config.onRestore) {
+            config.onRestore(node, { wf: data.wf || {}, statesMap: data.statesMap || {}, data: data });
+          }
         
         // 设值
         if (n.controls) {
@@ -269,6 +275,9 @@ export async function createControlFlowEditor(container: HTMLElement, onGraphSav
         
         if (n.position) {
           await area.translate(node.id, n.position);
+        }
+        } catch (e) {
+          console.error(`[VisualLogic] 导入节点失败: ${n.name}`, e);
         }
       }
       

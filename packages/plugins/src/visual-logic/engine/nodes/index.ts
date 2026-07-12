@@ -16,12 +16,12 @@ export * from './types';
 // ==========================================
 // 2. 执行流节点（带有执行线，用于控制程序流向）
 // ==========================================
-// 触发器节点：流程的起点，提供手动触发按钮
-export * from './trigger/TriggerNode';
 // 系统动作节点：模拟执行系统级任务（写日志、清理缓存等）
 export * from './system-action/SystemActionNode';
 // 业务动作节点：模拟执行业务层任务（发短信、建订单等）
 export * from './business-action/BusinessActionNode';
+// 延时节点：阻断并延迟执行流的继续
+export * from './delay/DelayNode';
 // 判断/条件节点：接收布尔值数据，类似 if-else 控制执行流走向（满足/不满足分支）
 export * from './condition/ConditionNode';
 
@@ -34,3 +34,5 @@ export * from './variables/GetVariableNode';
 export * from './variables/SetVariableNode';
 // 逻辑运算节点：无执行线，对数据进行算术或逻辑比较，输出布尔结果
 export * from './logic/LogicNode';
+// 逻辑取反节点：对布尔值进行取反
+export * from './logic/NotNode';

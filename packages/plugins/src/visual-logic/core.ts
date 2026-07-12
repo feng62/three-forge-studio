@@ -14,6 +14,14 @@ export const VisualLogicCorePlugin = {
   onInstall(core: any) {
     this.engine = core;
     console.log("VisualLogic Core Plugin Installed");
+
+    // 监听 interaction 插件抛出的交互事件
+    this.engine.addEventListener('plugin:interaction-trigger', (e: any) => {
+      this.triggerEvent({
+        type: 'interaction',
+        interactionEvent: e
+      });
+    });
   },
 
   setState(newState: VisualLogicPluginState) {
@@ -24,8 +32,13 @@ export const VisualLogicCorePlugin = {
    * 触发无头执行流
    */
   async triggerEvent(payload: any) {
+    if (this.engine && this.engine.isEditor) {
+      console.log('[VisualLogic] 当前处于编辑器模式，跳过逻辑执行。');
+      return;
+    }
+
     if (!this.state.logics || this.state.logics.length === 0) return;
-    
+
     const workflows = this.state.logics.map(logic => ({
       id: logic.id,
       name: logic.name,

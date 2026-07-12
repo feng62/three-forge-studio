@@ -15,6 +15,7 @@ export const LabelCorePlugin = {
   activeVueApps: new Map<string, any>(), // Track mounted Vue apps
   
   _animationFrameId: null as number | null,
+  _onSceneLoaded: null as any,
   
   // Callback registry
   callbacks: {} as Record<string, Function[]>,
@@ -152,7 +153,7 @@ export const LabelCorePlugin = {
           
           (async () => {
             try {
-              const options = {
+              const options: any = {
                 moduleCache: { vue: Vue },
                 async getFile(url: string) {
                   // Fallback to labelDef.code if files not defined or empty
@@ -176,7 +177,7 @@ export const LabelCorePlugin = {
               const component = await loadModule('/App.vue', options);
               
               // Pass the model as a root prop
-              const app = Vue.createApp(component, { model: dataContext.model });
+              const app = Vue.createApp(component as any, { model: dataContext.model });
               
               // Register other files as global components
               if (labelDef.files) {
@@ -185,7 +186,7 @@ export const LabelCorePlugin = {
                     try {
                       const childComp = await loadModule(filename, options);
                       const compName = filename.replace(/^\//, '').replace(/\.vue$/, '');
-                      app.component(compName, childComp);
+                      app.component(compName, childComp as any);
                     } catch (e) {
                       console.warn(`Failed to auto-register component ${filename}`, e);
                     }
@@ -222,34 +223,36 @@ export const LabelCorePlugin = {
         this.activeLabels.set(labelDef.id, htmlLabel);
       } else if (htmlLabel) {
         // Just update anchor without recreating element
-        htmlLabel.options.anchor = labelDef.anchor;
-        htmlLabel.options.is3D = labelDef.is3D;
-        htmlLabel.options.occluded = labelDef.occluded;
-        htmlLabel.options.fixedRotation = labelDef.fixedRotation;
-        htmlLabel.options.rotation = labelDef.rotation;
-        htmlLabel.options.followAxis = labelDef.followAxis;
+        htmlLabel.options.anchor = labelDef.anchor || [0, 0];
+        htmlLabel.options.is3D = !!labelDef.is3D;
+        htmlLabel.options.occluded = !!labelDef.occluded;
+        htmlLabel.options.fixedRotation = !!labelDef.fixedRotation;
+        htmlLabel.options.rotation = labelDef.rotation || [0, 0, 0];
+        htmlLabel.options.followAxis = labelDef.followAxis || 'none';
       }
       
-      // Ensure group name is synced and it is not exported to scene json
-      htmlLabel.group.name = labelDef.name;
-      htmlLabel.group.userData.isHelper = true;
-      
-      // Update visibility and dispatch callbacks
-      const wasVisible = htmlLabel.element.style.display !== 'none';
-      const isVisible = !!labelDef.visible;
-      
-      htmlLabel.element.style.display = isVisible ? 'block' : 'none';
-      
-      if (!wasVisible && isVisible) {
-        this.emit('plugin:LabelPlugin-show', { id: labelDef.id, label: labelDef });
-        this.engine.dispatchEvent({ type: 'plugin:LabelPlugin-show', detail: { id: labelDef.id } });
-      } else if (wasVisible && !isVisible) {
-        this.emit('plugin:LabelPlugin-hide', { id: labelDef.id, label: labelDef });
-        this.engine.dispatchEvent({ type: 'plugin:LabelPlugin-hide', detail: { id: labelDef.id } });
+      if (htmlLabel) {
+        // Ensure group name is synced and it is not exported to scene json
+        htmlLabel.group.name = labelDef.name;
+        htmlLabel.group.userData.isHelper = true;
+        
+        // Update visibility and dispatch callbacks
+        const wasVisible = htmlLabel.element.style.display !== 'none';
+        const isVisible = !!labelDef.visible;
+        
+        htmlLabel.element.style.display = isVisible ? 'block' : 'none';
+        
+        if (!wasVisible && isVisible) {
+          this.emit('plugin:LabelPlugin-show', { id: labelDef.id, label: labelDef });
+          this.engine.dispatchEvent({ type: 'plugin:LabelPlugin-show', detail: { id: labelDef.id } });
+        } else if (wasVisible && !isVisible) {
+          this.emit('plugin:LabelPlugin-hide', { id: labelDef.id, label: labelDef });
+          this.engine.dispatchEvent({ type: 'plugin:LabelPlugin-hide', detail: { id: labelDef.id } });
+        }
+        
+        // Bind to 3D object
+        this.bindLabelToTarget(htmlLabel, labelDef);
       }
-      
-      // Bind to 3D object
-      this.bindLabelToTarget(htmlLabel, labelDef);
     }
   },
 
